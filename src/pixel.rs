@@ -1,3 +1,9 @@
+pub const COLOR_ZERO: Pixel = Pixel {
+    r: 0,
+    g: 0,
+    b: 0,
+    a: 0,
+};
 pub const COLOR_BLACK: Pixel = Pixel {
     r: 0,
     g: 0,

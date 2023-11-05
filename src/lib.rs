@@ -5,7 +5,7 @@ mod math;
 #[allow(dead_code)]
 mod pixel;
 
-const WASM_MEMORY_BUFFER_SIZE: usize = 1 << 18;
+const WASM_MEMORY_BUFFER_SIZE: usize = 1 << 10;
 pub static mut WASM_MEMORY_BUFFER: [u8; WASM_MEMORY_BUFFER_SIZE] = [0; WASM_MEMORY_BUFFER_SIZE];
 
 #[no_mangle]
@@ -13,9 +13,9 @@ pub extern "C" fn buffer() -> *const u8 {
     unsafe { WASM_MEMORY_BUFFER.as_ptr() }
 }
 
-const WASM_PIXEL_BUFFER_SIZE: usize = 1 << 18;
+const WASM_PIXEL_BUFFER_SIZE: usize = 1 << 14;
 pub static mut WASM_PIXEL_BUFFER: [pixel::Pixel; WASM_PIXEL_BUFFER_SIZE] =
-    [pixel::COLOR_WHITE; WASM_PIXEL_BUFFER_SIZE];
+    [pixel::COLOR_ZERO; WASM_PIXEL_BUFFER_SIZE];
 
 #[no_mangle]
 pub extern "C" fn pixel_buffer() -> *const pixel::Pixel {

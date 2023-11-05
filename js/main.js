@@ -1,4 +1,4 @@
-const lib_wasm_filename = "lib.wasm"
+const lib_wasm_filename = "assets/lib.wasm"
 let lib_wasm = null
 let lib_wasm_memory = null
 
