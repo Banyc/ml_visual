@@ -38,6 +38,41 @@ function log_hello_world() {
     console.log("`%s` said: \"%s\"", lib_wasm_filename, read_wasm_string(0, len))
 }
 
+function binary_classification_setup() {
+    let w_1 = document.getElementById("binary_classification.w_1")
+    w_1.addEventListener("input", function(ev) {
+        binary_classification_draw_canvas()
+    })
+    let w_2 = document.getElementById("binary_classification.w_2")
+    w_2.addEventListener("input", function(ev) {
+        binary_classification_draw_canvas()
+    })
+    let b = document.getElementById("binary_classification.b")
+    b.addEventListener("input", function(ev) {
+        binary_classification_draw_canvas()
+    })
+
+    let w_1_range = document.getElementById("binary_classification.w_1_range")
+    w_1_range.addEventListener("input", function(ev) {
+        document.getElementById("binary_classification.w_1").value = this.value
+        binary_classification_draw_canvas()
+    })
+    
+    let w_2_range = document.getElementById("binary_classification.w_2_range")
+    w_2_range.addEventListener("input", function(ev) {
+        document.getElementById("binary_classification.w_2").value = this.value
+        binary_classification_draw_canvas()
+    })
+    
+    let b_range = document.getElementById("binary_classification.b_range")
+    b_range.addEventListener("input", function(ev) {
+        document.getElementById("binary_classification.b").value = this.value
+        binary_classification_draw_canvas()
+    })
+
+    binary_classification_draw_canvas()
+}
+
 function binary_classification_draw_canvas() {
     const size_x = 128
     const size_y = 128
@@ -61,6 +96,7 @@ async function main() {
     await import_lib_wasm()
     render_one_plus_one()
     log_hello_world()
+    binary_classification_setup()
 }
 
 main()
