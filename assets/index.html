@@ -4,6 +4,24 @@
     <script src="index.js"></script>
   </head>
   <body>
-    1 + 1 = <span id="sum">loading</span>
+    <div>1 + 1 = <span id="sum">loading</span></div>
+    <div>
+      <h1>Binary classification</h1>
+      <p>
+        Binary classification with two features { x_1, x_2 } as input and two
+        classes { 0, 1 } as output
+      </p>
+      <canvas id="binary_classification.canvas" width="auto" height="auto"></canvas>
+      <ui>
+        <li>Blue: 1</li>
+        <li>Red: 0</li>
+        <li>X-axis: x_1, range: [0, 1]</li>
+        <li>Y-axis: x_2, range: [0, 1]</li>
+        <li>w_1: <input id="binary_classification.w_1" type="text" value="-1" /></li>
+        <li>w_2: <input id="binary_classification.w_2" type="text" value="2" /></li>
+        <li>b: <input id="binary_classification.b" type="text" value="0" /></li>
+        <li><button onclick="binary_classification_draw_canvas()">draw</button></li>
+      </ui>
+    </div>
   </body>
 </html>
