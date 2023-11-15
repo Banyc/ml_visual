@@ -1,33 +1,32 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <script src="js/main.js"></script>
+    <script type="module" src="js/main.js"></script>
   </head>
   <body>
-    <div>1 + 1 = <span id="sum">loading</span></div>
     <div>
-      <h1>Binary classification</h1>
+      <h1>Perceptron</h1>
       <p>
         Binary classification with two features { x_1, x_2 } as input and two
         classes { 0, 1 } as output
       </p>
-      <canvas id="binary_classification.canvas" width="auto" height="auto"></canvas>
+      <canvas id="perceptron.canvas" width="auto" height="auto"></canvas>
       <ui>
         <li>Blue: 1</li>
         <li>Red: 0</li>
         <li>X-axis: x_1, range: [-1, 1]</li>
         <li>Y-axis: x_2, range: [-1, 1]</li>
         <li>
-          w_1: <input id="binary_classification.w_1" type="text" value="-0.5" />
-          <input id="binary_classification.w_1_range" type="range" min="-1" max="1" step="any" value="-0.5" />
+          w_1: <input id="perceptron.w_1" type="text" value="-0.5" />
+          <input id="perceptron.w_1_range" type="range" min="-1" max="1" step="any" value="-0.5" />
         </li>
         <li>
-          w_2: <input id="binary_classification.w_2" type="text" value="1" />
-          <input id="binary_classification.w_2_range" type="range" min="-1" max="1" step="any" value="1" />
+          w_2: <input id="perceptron.w_2" type="text" value="1" />
+          <input id="perceptron.w_2_range" type="range" min="-1" max="1" step="any" value="1" />
         </li>
         <li>
-          b: <input id="binary_classification.b" type="text" value="0" />
-          <input id="binary_classification.b_range" type="range" min="-1" max="1" step="any" value="0" />
+          b: <input id="perceptron.b" type="text" value="0" />
+          <input id="perceptron.b_range" type="range" min="-1" max="1" step="any" value="0" />
         </li>
       </ui>
     </div>

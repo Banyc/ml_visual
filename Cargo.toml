@@ -10,3 +10,6 @@ edition = "2021"
 crate-type = ["cdylib"]
 
 [dependencies]
+js-sys = "0.3.65"
+olive-rs = { git = "https://github.com/banyc/olive-rs.git", rev = "0fbb30fed48eff9d6e450a3bb3300123bdf67d74" }
+wasm-bindgen = "0.2.88"
