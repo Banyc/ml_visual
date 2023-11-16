@@ -1,4 +1,4 @@
-import init, * as lib from "../assets/wasm/ml_visual.js"
+import init, * as lib from "../../assets/wasm/ml_visual.js"
 
 function perceptron_setup() {
     const size_x = 128
