@@ -7,14 +7,17 @@ function perceptron_setup() {
 
     let w_1 = document.getElementById("perceptron.w_1")
     w_1.addEventListener("input", function(ev) {
+        document.getElementById("perceptron.w_1_range").value = this.value
         perceptron_draw_canvas(pixels_wrapper)
     })
     let w_2 = document.getElementById("perceptron.w_2")
     w_2.addEventListener("input", function(ev) {
+        document.getElementById("perceptron.w_2_range").value = this.value
         perceptron_draw_canvas(pixels_wrapper)
     })
     let b = document.getElementById("perceptron.b")
     b.addEventListener("input", function(ev) {
+        document.getElementById("perceptron.b_range").value = this.value
         perceptron_draw_canvas(pixels_wrapper)
     })
 
