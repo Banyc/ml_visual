@@ -36,6 +36,35 @@ function perceptron_setup() {
         perceptron_draw_canvas(pixels_wrapper)
     })
 
+    let examples = document.getElementById("perceptron.examples")
+    examples.addEventListener("change", function(ev) {
+        perceptron_draw_canvas(pixels_wrapper)
+    })
+
+    let learn = document.getElementById("perceptron.learn")
+    learn.addEventListener("click", function(ev) {
+        const w_1 = parseFloat(document.getElementById("perceptron.w_1").value)
+        const w_2 = parseFloat(document.getElementById("perceptron.w_2").value)
+        const b = parseFloat(document.getElementById("perceptron.b").value)
+        let param = new lib.PerceptronParam(w_1, w_2, b)
+        const learning_rate = parseFloat(document.getElementById("perceptron.eta").value)
+        const examples = document.getElementById("perceptron.examples").value
+
+        const param_new = lib.perceptron_learn(examples, param, learning_rate)
+        if (param_new === undefined) {
+            return
+        }
+
+        document.getElementById("perceptron.w_1").value = param_new.w_1()
+        document.getElementById("perceptron.w_1_range").value = param_new.w_1()
+        document.getElementById("perceptron.w_2").value = param_new.w_2()
+        document.getElementById("perceptron.w_2_range").value = param_new.w_2()
+        document.getElementById("perceptron.b").value = param_new.b()
+        document.getElementById("perceptron.b_range").value = param_new.b()
+
+        perceptron_draw_canvas(pixels_wrapper)
+    })
+
     perceptron_draw_canvas(pixels_wrapper)
 }
 
@@ -43,8 +72,11 @@ function perceptron_draw_canvas(pixels_wrapper) {
     const w_1 = parseFloat(document.getElementById("perceptron.w_1").value)
     const w_2 = parseFloat(document.getElementById("perceptron.w_2").value)
     const b = parseFloat(document.getElementById("perceptron.b").value)
+    const examples = document.getElementById("perceptron.examples").value
+    let param = new lib.PerceptronParam(w_1, w_2, b)
 
-    lib.draw_perceptron_two_features(w_1, w_2, b, pixels_wrapper)
+    lib.perceptron_draw_classification(param, pixels_wrapper)
+    lib.perceptron_draw_examples(examples, pixels_wrapper)
 
     let canvas_perceptron = document.getElementById("perceptron.canvas")
     let ctx = canvas_perceptron.getContext("2d")

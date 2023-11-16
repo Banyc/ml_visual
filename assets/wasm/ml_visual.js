@@ -54,16 +54,198 @@ function _assertClass(instance, klass) {
     return instance.ptr;
 }
 /**
-* @param {number} w_1
-* @param {number} w_2
-* @param {number} b
+* @param {PerceptronParam} param
 * @param {Pixels2DWrapper} pixels
 */
-export function draw_perceptron_two_features(w_1, w_2, b, pixels) {
+export function perceptron_draw_classification(param, pixels) {
+    _assertClass(param, PerceptronParam);
+    var ptr0 = param.__destroy_into_raw();
     _assertClass(pixels, Pixels2DWrapper);
-    wasm.draw_perceptron_two_features(w_1, w_2, b, pixels.__wbg_ptr);
+    wasm.perceptron_draw_classification(ptr0, pixels.__wbg_ptr);
 }
 
+let WASM_VECTOR_LEN = 0;
+
+const cachedTextEncoder = (typeof TextEncoder !== 'undefined' ? new TextEncoder('utf-8') : { encode: () => { throw Error('TextEncoder not available') } } );
+
+const encodeString = (typeof cachedTextEncoder.encodeInto === 'function'
+    ? function (arg, view) {
+    return cachedTextEncoder.encodeInto(arg, view);
+}
+    : function (arg, view) {
+    const buf = cachedTextEncoder.encode(arg);
+    view.set(buf);
+    return {
+        read: arg.length,
+        written: buf.length
+    };
+});
+
+function passStringToWasm0(arg, malloc, realloc) {
+
+    if (realloc === undefined) {
+        const buf = cachedTextEncoder.encode(arg);
+        const ptr = malloc(buf.length, 1) >>> 0;
+        getUint8Memory0().subarray(ptr, ptr + buf.length).set(buf);
+        WASM_VECTOR_LEN = buf.length;
+        return ptr;
+    }
+
+    let len = arg.length;
+    let ptr = malloc(len, 1) >>> 0;
+
+    const mem = getUint8Memory0();
+
+    let offset = 0;
+
+    for (; offset < len; offset++) {
+        const code = arg.charCodeAt(offset);
+        if (code > 0x7F) break;
+        mem[ptr + offset] = code;
+    }
+
+    if (offset !== len) {
+        if (offset !== 0) {
+            arg = arg.slice(offset);
+        }
+        ptr = realloc(ptr, len, len = offset + arg.length * 3, 1) >>> 0;
+        const view = getUint8Memory0().subarray(ptr + offset, ptr + len);
+        const ret = encodeString(arg, view);
+
+        offset += ret.written;
+    }
+
+    WASM_VECTOR_LEN = offset;
+    return ptr;
+}
+/**
+* @param {string} examples
+* @param {Pixels2DWrapper} pixels
+*/
+export function perceptron_draw_examples(examples, pixels) {
+    const ptr0 = passStringToWasm0(examples, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const len0 = WASM_VECTOR_LEN;
+    _assertClass(pixels, Pixels2DWrapper);
+    wasm.perceptron_draw_examples(ptr0, len0, pixels.__wbg_ptr);
+}
+
+/**
+* @param {string} examples
+* @param {PerceptronParam} param
+* @param {number} learning_rate
+* @returns {PerceptronParam | undefined}
+*/
+export function perceptron_learn(examples, param, learning_rate) {
+    const ptr0 = passStringToWasm0(examples, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const len0 = WASM_VECTOR_LEN;
+    _assertClass(param, PerceptronParam);
+    var ptr1 = param.__destroy_into_raw();
+    const ret = wasm.perceptron_learn(ptr0, len0, ptr1, learning_rate);
+    return ret === 0 ? undefined : PerceptronParam.__wrap(ret);
+}
+
+/**
+*/
+export class PerceptronExample {
+
+    __destroy_into_raw() {
+        const ptr = this.__wbg_ptr;
+        this.__wbg_ptr = 0;
+
+        return ptr;
+    }
+
+    free() {
+        const ptr = this.__destroy_into_raw();
+        wasm.__wbg_perceptronexample_free(ptr);
+    }
+    /**
+    * @param {number} x_1
+    * @param {number} x_2
+    * @param {boolean} y
+    */
+    constructor(x_1, x_2, y) {
+        const ret = wasm.perceptronexample_new(x_1, x_2, y);
+        this.__wbg_ptr = ret >>> 0;
+        return this;
+    }
+    /**
+    * @returns {number}
+    */
+    x_1() {
+        const ret = wasm.perceptronexample_x_1(this.__wbg_ptr);
+        return ret;
+    }
+    /**
+    * @returns {number}
+    */
+    x_2() {
+        const ret = wasm.perceptronexample_x_2(this.__wbg_ptr);
+        return ret;
+    }
+    /**
+    * @returns {boolean}
+    */
+    y() {
+        const ret = wasm.perceptronexample_y(this.__wbg_ptr);
+        return ret !== 0;
+    }
+}
+/**
+*/
+export class PerceptronParam {
+
+    static __wrap(ptr) {
+        ptr = ptr >>> 0;
+        const obj = Object.create(PerceptronParam.prototype);
+        obj.__wbg_ptr = ptr;
+
+        return obj;
+    }
+
+    __destroy_into_raw() {
+        const ptr = this.__wbg_ptr;
+        this.__wbg_ptr = 0;
+
+        return ptr;
+    }
+
+    free() {
+        const ptr = this.__destroy_into_raw();
+        wasm.__wbg_perceptronparam_free(ptr);
+    }
+    /**
+    * @param {number} w_1
+    * @param {number} w_2
+    * @param {number} b
+    */
+    constructor(w_1, w_2, b) {
+        const ret = wasm.perceptronparam_new(w_1, w_2, b);
+        this.__wbg_ptr = ret >>> 0;
+        return this;
+    }
+    /**
+    * @returns {number}
+    */
+    w_1() {
+        const ret = wasm.perceptronexample_x_1(this.__wbg_ptr);
+        return ret;
+    }
+    /**
+    * @returns {number}
+    */
+    w_2() {
+        const ret = wasm.perceptronexample_x_2(this.__wbg_ptr);
+        return ret;
+    }
+    /**
+    * @returns {number}
+    */
+    b() {
+        const ret = wasm.perceptronparam_b(this.__wbg_ptr);
+        return ret;
+    }
+}
 /**
 */
 export class Pixels2DWrapper {
