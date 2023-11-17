@@ -28,8 +28,8 @@
         <ul>
           <li>Blue: \(1\)</li>
           <li>Red: \(0\)</li>
-          <li>X-axis: \(x_1\), range: \([-1, 1]\)</li>
-          <li>Y-axis: \(x_2\), range: \([-1, 1]\)</li>
+          <li>X-axis: standardized \(x_1\), range: \([-2, 2]\)</li>
+          <li>Y-axis: standardized \(x_2\), range: \([-2, 2]\)</li>
         </ul>
       </div>
       <ul>
@@ -49,7 +49,9 @@
           Learning rate: <input id="perceptron.eta" type="text" value="0.01" />
         </li>
         <li>
-          Examples: <input id="perceptron.examples" type="text" value="[[0.5,0.5,0],[-0.5,-0.5,1]]" />
+          Examples:<br/>
+          <textarea id="perceptron.examples" type="text">[[0.5,0.5,0],
+ [-0.5,-0.5,1]]</textarea>
         </li>
         <li>
           <button id="perceptron.learn">Learn</button>

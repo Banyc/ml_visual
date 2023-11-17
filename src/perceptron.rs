@@ -1,7 +1,7 @@
 use olive_rs::{Pixel, RealPoint, RealSpace, BLUE, RED};
 use wasm_bindgen::prelude::*;
 
-use crate::canvas::Pixels2DWrapper;
+use crate::{canvas::Pixels2DWrapper, math::StandardizedExt};
 
 pub mod models {
     use wasm_bindgen::prelude::*;
@@ -63,8 +63,8 @@ pub mod models {
     }
 }
 
-const X_1_RANGE: std::ops::RangeInclusive<f64> = -1.0..=1.0;
-const X_2_RANGE: std::ops::RangeInclusive<f64> = -1.0..=1.0;
+const X_1_RANGE: std::ops::RangeInclusive<f64> = -2.0..=2.0;
+const X_2_RANGE: std::ops::RangeInclusive<f64> = -2.0..=2.0;
 const REAL_SPACE: RealSpace = RealSpace::new(X_1_RANGE, X_2_RANGE);
 
 #[wasm_bindgen]
@@ -89,6 +89,7 @@ pub fn perceptron_draw_examples(examples: &str, pixels: &mut Pixels2DWrapper) {
     let Some(examples) = parse_examples(examples) else {
         return;
     };
+    let examples = standardize(examples.into_iter());
     const R: f64 = 0.05;
     for example in examples {
         let color = match example.y() {
@@ -111,7 +112,8 @@ pub fn perceptron_learn(
     let Some(examples) = parse_examples(examples) else {
         return None;
     };
-    Some(learn(examples.into_iter(), param, learning_rate))
+    let examples = standardize(examples.into_iter());
+    Some(learn(examples, param, learning_rate))
 }
 
 #[wasm_bindgen]
@@ -123,7 +125,8 @@ pub fn perceptron_adaline_learn(
     let Some(examples) = parse_examples(examples) else {
         return None;
     };
-    Some(adaline_learn(examples.into_iter(), param, learning_rate))
+    let examples = standardize(examples.into_iter());
+    Some(adaline_learn(examples, param, learning_rate))
 }
 
 fn parse_examples(examples: &str) -> Option<Vec<models::PerceptronExample>> {
@@ -153,6 +156,18 @@ fn parse_examples(examples: &str) -> Option<Vec<models::PerceptronExample>> {
         return None;
     };
     Some(examples)
+}
+
+fn standardize(
+    examples: impl Iterator<Item = models::PerceptronExample> + Clone,
+) -> impl Iterator<Item = models::PerceptronExample> + Clone {
+    let x_1 = examples.clone().map(|example| example.x_1()).standardized();
+    let x_2 = examples.clone().map(|example| example.x_2()).standardized();
+
+    examples
+        .zip(x_1)
+        .zip(x_2)
+        .map(|((example, x_1), x_2)| models::PerceptronExample::new(x_1, x_2, example.y()))
 }
 
 fn net_input_function(x_1: f64, w_1: f64, x_2: f64, w_2: f64, b: f64) -> f64 {
