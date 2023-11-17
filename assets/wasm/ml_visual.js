@@ -145,6 +145,21 @@ export function perceptron_learn(examples, param, learning_rate) {
 }
 
 /**
+* @param {string} examples
+* @param {PerceptronParam} param
+* @param {number} learning_rate
+* @returns {PerceptronParam | undefined}
+*/
+export function perceptron_adaline_learn(examples, param, learning_rate) {
+    const ptr0 = passStringToWasm0(examples, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const len0 = WASM_VECTOR_LEN;
+    _assertClass(param, PerceptronParam);
+    var ptr1 = param.__destroy_into_raw();
+    const ret = wasm.perceptron_adaline_learn(ptr0, len0, ptr1, learning_rate);
+    return ret === 0 ? undefined : PerceptronParam.__wrap(ret);
+}
+
+/**
 */
 export class PerceptronExample {
 

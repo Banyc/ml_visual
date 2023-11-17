@@ -46,27 +46,43 @@ function perceptron_setup() {
 
     let learn = document.getElementById("perceptron.learn")
     learn.addEventListener("click", function(ev) {
-        const w_1 = parseFloat(document.getElementById("perceptron.w_1").value)
-        const w_2 = parseFloat(document.getElementById("perceptron.w_2").value)
-        const b = parseFloat(document.getElementById("perceptron.b").value)
-        let param = new lib.PerceptronParam(w_1, w_2, b)
-        const learning_rate = parseFloat(document.getElementById("perceptron.eta").value)
-        const examples = document.getElementById("perceptron.examples").value
-
-        const param_new = lib.perceptron_learn(examples, param, learning_rate)
-        if (param_new === undefined) {
-            return
-        }
-
-        document.getElementById("perceptron.w_1").value = param_new.w_1()
-        document.getElementById("perceptron.w_1_range").value = param_new.w_1()
-        document.getElementById("perceptron.w_2").value = param_new.w_2()
-        document.getElementById("perceptron.w_2_range").value = param_new.w_2()
-        document.getElementById("perceptron.b").value = param_new.b()
-        document.getElementById("perceptron.b_range").value = param_new.b()
-
-        perceptron_draw_canvas(pixels_wrapper)
+        const adaline = false
+        learn_and_draw(adaline, pixels_wrapper)
     })
+
+    let adaline_learn = document.getElementById("perceptron.adaline_learn")
+    adaline_learn.addEventListener("click", function(ev) {
+        const adaline = true
+        learn_and_draw(adaline, pixels_wrapper)
+    })
+
+    perceptron_draw_canvas(pixels_wrapper)
+}
+
+function learn_and_draw(adaline, pixels_wrapper) {
+    const w_1 = parseFloat(document.getElementById("perceptron.w_1").value)
+    const w_2 = parseFloat(document.getElementById("perceptron.w_2").value)
+    const b = parseFloat(document.getElementById("perceptron.b").value)
+    let param = new lib.PerceptronParam(w_1, w_2, b)
+    const learning_rate = parseFloat(document.getElementById("perceptron.eta").value)
+    const examples = document.getElementById("perceptron.examples").value
+
+    let param_new = null
+    if (adaline) {
+        param_new = lib.perceptron_adaline_learn(examples, param, learning_rate)
+    } else {
+        param_new = lib.perceptron_learn(examples, param, learning_rate)
+    }
+    if (param_new === undefined) {
+        return
+    }
+
+    document.getElementById("perceptron.w_1").value = param_new.w_1()
+    document.getElementById("perceptron.w_1_range").value = param_new.w_1()
+    document.getElementById("perceptron.w_2").value = param_new.w_2()
+    document.getElementById("perceptron.w_2_range").value = param_new.w_2()
+    document.getElementById("perceptron.b").value = param_new.b()
+    document.getElementById("perceptron.b_range").value = param_new.b()
 
     perceptron_draw_canvas(pixels_wrapper)
 }

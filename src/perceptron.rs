@@ -35,6 +35,7 @@ pub mod models {
     }
 
     #[wasm_bindgen]
+    #[derive(Debug, Clone, Copy)]
     pub struct PerceptronExample {
         x_1: f64,
         x_2: f64,
@@ -113,6 +114,18 @@ pub fn perceptron_learn(
     Some(learn(examples.into_iter(), param, learning_rate))
 }
 
+#[wasm_bindgen]
+pub fn perceptron_adaline_learn(
+    examples: &str,
+    param: models::PerceptronParam,
+    learning_rate: f64,
+) -> Option<models::PerceptronParam> {
+    let Some(examples) = parse_examples(examples) else {
+        return None;
+    };
+    Some(adaline_learn(examples.into_iter(), param, learning_rate))
+}
+
 fn parse_examples(examples: &str) -> Option<Vec<models::PerceptronExample>> {
     let examples = jsonc_parser::parse_to_serde_value(examples, &Default::default())
         .ok()
@@ -142,8 +155,12 @@ fn parse_examples(examples: &str) -> Option<Vec<models::PerceptronExample>> {
     Some(examples)
 }
 
+fn net_input_function(x_1: f64, w_1: f64, x_2: f64, w_2: f64, b: f64) -> f64 {
+    x_1 * w_1 + x_2 * w_2 + b
+}
+
 fn decision_function(x_1: f64, w_1: f64, x_2: f64, w_2: f64, b: f64) -> bool {
-    x_1 * w_1 + x_2 * w_2 + b >= 0.
+    net_input_function(x_1, w_1, x_2, w_2, b) >= 0.
 }
 
 fn learn(
@@ -170,6 +187,56 @@ fn learn(
         let b = param.b() + update;
         models::PerceptronParam::new(w_1, w_2, b)
     })
+}
+
+fn adaline_learn(
+    examples: impl Iterator<Item = models::PerceptronExample> + Clone,
+    param: models::PerceptronParam,
+    learning_rate: f64,
+) -> models::PerceptronParam {
+    let example_and_diff = examples.clone().map(|example| {
+        // Why `+ 0.5`:
+        // - We set 0 as the classification threshold for net input
+        // - We get the error using direct comparison
+        //   between the activation function and the example label
+        // - The example label is either 0 or 1
+        // - `+ 0.5` pushes the threshold to 0.5
+        let activation = net_input_function(
+            example.x_1(),
+            param.w_1(),
+            example.x_2(),
+            param.w_2(),
+            param.b(),
+        ) + 0.5;
+
+        // `example.y()`: the example label
+        let diff = f64::from(example.y()) - activation;
+        (example, diff)
+    });
+    let sum_differences: f64 = example_and_diff.clone().map(|(_, diff)| diff).sum();
+    let sum_x_1_weighted_differences: f64 = example_and_diff
+        .clone()
+        .map(|(example, diff)| example.x_1() * diff)
+        .sum();
+    let sum_x_2_weighted_differences: f64 = example_and_diff
+        .clone()
+        .map(|(example, diff)| example.x_2() * diff)
+        .sum();
+    let n = examples.count();
+
+    let gradient_at_b = -2.0 / n as f64 * sum_differences;
+    let gradient_at_w_1 = -2.0 / n as f64 * sum_x_1_weighted_differences;
+    let gradient_at_w_2 = -2.0 / n as f64 * sum_x_2_weighted_differences;
+
+    let change_b = -learning_rate * gradient_at_b;
+    let change_w_1 = -learning_rate * gradient_at_w_1;
+    let change_w_2 = -learning_rate * gradient_at_w_2;
+
+    models::PerceptronParam::new(
+        param.w_1() + change_w_1,
+        param.w_2() + change_w_2,
+        param.b() + change_b,
+    )
 }
 
 #[cfg(test)]
