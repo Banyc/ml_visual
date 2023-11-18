@@ -75,7 +75,7 @@ pub fn perceptron_draw_classification(
     pixels.canvas().fill_by_function(&REAL_SPACE, |point| {
         let x_1 = point.x();
         let x_2 = point.y();
-        let res = decision_function(x_1, param.w_1(), x_2, param.w_2(), param.b());
+        let res = prediction_function(x_1, param.w_1(), x_2, param.w_2(), param.b());
         let pixel = match res {
             true => Pixel::new(0, 0, 100, u8::MAX),
             false => Pixel::new(100, 0, 0, u8::MAX),
@@ -170,12 +170,13 @@ fn standardize(
         .map(|((example, x_1), x_2)| models::PerceptronExample::new(x_1, x_2, example.y()))
 }
 
-fn net_input_function(x_1: f64, w_1: f64, x_2: f64, w_2: f64, b: f64) -> f64 {
+fn decision_function(x_1: f64, w_1: f64, x_2: f64, w_2: f64, b: f64) -> f64 {
+    // the net input function
     x_1 * w_1 + x_2 * w_2 + b
 }
 
-fn decision_function(x_1: f64, w_1: f64, x_2: f64, w_2: f64, b: f64) -> bool {
-    net_input_function(x_1, w_1, x_2, w_2, b) >= 0.
+fn prediction_function(x_1: f64, w_1: f64, x_2: f64, w_2: f64, b: f64) -> bool {
+    decision_function(x_1, w_1, x_2, w_2, b) >= 0.
 }
 
 fn learn(
@@ -184,7 +185,7 @@ fn learn(
     learning_rate: f64,
 ) -> models::PerceptronParam {
     let example_and_y_hat = examples.map(|example| {
-        let y_hat = decision_function(
+        let y_hat = prediction_function(
             example.x_1(),
             param.w_1(),
             example.x_2(),
@@ -211,12 +212,12 @@ fn adaline_learn(
 ) -> models::PerceptronParam {
     let example_and_diff = examples.clone().map(|example| {
         // Why `+ 0.5`:
-        // - We set 0 as the classification threshold for net input
+        // - We set 0 as the classification threshold at `prediction_function`
         // - We get the error using direct comparison
         //   between the activation function and the example label
         // - The example label is either 0 or 1
         // - `+ 0.5` pushes the threshold to 0.5
-        let activation = net_input_function(
+        let activation = decision_function(
             example.x_1(),
             param.w_1(),
             example.x_2(),
