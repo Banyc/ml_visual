@@ -158,10 +158,6 @@ fn parse_examples(examples: &str) -> Option<Vec<models::PerceptronExample>> {
     Some(examples)
 }
 
-fn test(examples: impl Iterator<Item = f64>, sc: crate::math::StandardScaler) {
-    let _ = examples.standardized_with(sc);
-}
-
 fn standardize(
     examples: impl Iterator<Item = models::PerceptronExample> + Clone,
 ) -> impl Iterator<Item = models::PerceptronExample> + Clone {

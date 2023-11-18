@@ -10,21 +10,30 @@ pub fn lerp(v: &std::ops::RangeInclusive<f64>, t: f64) -> f64 {
 #[derive(Debug, Clone)]
 pub struct Standardized<I> {
     iter: I,
+    sc: StandardScaler,
 }
-impl<I: Iterator> Iterator for Standardized<I> {
+impl<I: Iterator<Item = f64>> Iterator for Standardized<I> {
     type Item = I::Item;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.iter.next()
+        self.iter
+            .next()
+            .map(move |x| (x - self.sc.mean()) / self.sc.standard_deviation())
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
         self.iter.size_hint()
     }
 }
+impl<I> Standardized<I> {
+    pub fn new(iter: I, sc: StandardScaler) -> Self {
+        Self { iter, sc }
+    }
+}
+
 pub trait StandardizedExt: Iterator {
     /// Standardizes the iterator based on the iterator itself.
-    fn standardized(self) -> Standardized<std::iter::Map<Self, impl FnMut(f64) -> f64 + Clone>>
+    fn standardized(self) -> Standardized<Self>
     where
         Self: Clone;
     /// Fits a standard scaler from the elements of the iterator,
@@ -36,10 +45,7 @@ pub trait StandardizedExt: Iterator {
     ///
     /// This only scales the iterator based on the provided `sc`,
     /// not on the iterator itself.
-    fn standardized_with(
-        self,
-        sc: StandardScaler,
-    ) -> Standardized<std::iter::Map<Self, impl FnMut(f64) -> f64 + Clone>>
+    fn standardized_with(self, sc: StandardScaler) -> Standardized<Self>
     where
         Self: Sized;
 }
@@ -47,7 +53,7 @@ impl<T> StandardizedExt for T
 where
     T: Iterator<Item = f64>,
 {
-    fn standardized(self) -> Standardized<std::iter::Map<Self, impl FnMut(f64) -> f64 + Clone>>
+    fn standardized(self) -> Standardized<Self>
     where
         Self: Clone,
     {
@@ -62,12 +68,8 @@ where
         StandardScaler::fit(self)
     }
 
-    fn standardized_with(
-        self,
-        sc: StandardScaler,
-    ) -> Standardized<std::iter::Map<Self, impl FnMut(f64) -> f64 + Clone>> {
-        let iter = self.map(move |x| (x - sc.mean()) / sc.standard_deviation());
-        Standardized { iter }
+    fn standardized_with(self, sc: StandardScaler) -> Standardized<Self> {
+        Standardized::new(self, sc)
     }
 }
 
