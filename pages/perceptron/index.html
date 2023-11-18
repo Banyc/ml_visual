@@ -7,57 +7,144 @@
   <body>
     <div>
       <h1>Perceptron</h1>
-      <p>
-        Binary classification with two features \(\{ x_1, x_2 \}\) as input and two
-        classes \(\{ 0, 1 \}\) as output
-      </p>
-      <p>
-        $$
-        z = x_1 w_1 + x_2 w_2 + b
-        $$
+      <div>
+        <h2>Two classes</h2>
+        <p>
+          Binary classification with two features \(\{ x_1, x_2 \}\) as input and two
+          classes \(\{ 0, 1 \}\) as output.
+        </p>
+        <p>
+          $$
+          z = x_1 w_1 + x_2 w_2 + b
+          $$
 
-        $$
-        \hat{y} = \begin{cases}
-          1 & \text{if} \space z \geq 0 \\
-          0 & \text{otherwise} \\
-        \end{cases}
-        $$
-      </p>
-      <div style="display: flex;">
-        <canvas id="perceptron.canvas" width="128" height="128"></canvas>
+          $$
+          \hat{y} = \begin{cases}
+            1 & \text{if} \space z \geq 0 \\
+            0 & \text{otherwise} \\
+          \end{cases}
+          $$
+        </p>
+        <div style="display: flex;">
+          <canvas id="perceptron.canvas" width="128" height="128"></canvas>
+          <ul>
+            <li>Blue: \(1\)</li>
+            <li>Red: \(0\)</li>
+            <li>X-axis: standardized \(x_1\), range: \([-2, 2]\)</li>
+            <li>Y-axis: standardized \(x_2\), range: \([-2, 2]\)</li>
+          </ul>
+        </div>
         <ul>
-          <li>Blue: \(1\)</li>
-          <li>Red: \(0\)</li>
-          <li>X-axis: standardized \(x_1\), range: \([-2, 2]\)</li>
-          <li>Y-axis: standardized \(x_2\), range: \([-2, 2]\)</li>
+          <li>
+            \(w_1\): <input id="perceptron.w_1" type="text" value="-0.5" />
+            <input id="perceptron.w_1_range" type="range" min="-1" max="1" step="any" value="-0.5" />
+          </li>
+          <li>
+            \(w_2\): <input id="perceptron.w_2" type="text" value="1" />
+            <input id="perceptron.w_2_range" type="range" min="-1" max="1" step="any" value="1" />
+          </li>
+          <li>
+            \(b\): <input id="perceptron.b" type="text" value="0" />
+            <input id="perceptron.b_range" type="range" min="-1" max="1" step="any" value="0" />
+          </li>
+          <li>
+            Learning rate: <input id="perceptron.eta" type="text" value="0.01" />
+          </li>
+          <li>
+            Examples:<br/>
+            <textarea id="perceptron.examples" type="text">[[0.5,0.5,0]
+ [-0.5,-0.5,1]
+]</textarea>
+          </li>
+          <li>
+            <button id="perceptron.learn">Learn</button>
+            <button id="perceptron.adaline_learn">Adaline Learn</button>
+          </li>
         </ul>
       </div>
-      <ul>
-        <li>
-          \(w_1\): <input id="perceptron.w_1" type="text" value="-0.5" />
-          <input id="perceptron.w_1_range" type="range" min="-1" max="1" step="any" value="-0.5" />
-        </li>
-        <li>
-          \(w_2\): <input id="perceptron.w_2" type="text" value="1" />
-          <input id="perceptron.w_2_range" type="range" min="-1" max="1" step="any" value="1" />
-        </li>
-        <li>
-          \(b\): <input id="perceptron.b" type="text" value="0" />
-          <input id="perceptron.b_range" type="range" min="-1" max="1" step="any" value="0" />
-        </li>
-        <li>
-          Learning rate: <input id="perceptron.eta" type="text" value="0.01" />
-        </li>
-        <li>
-          Examples:<br/>
-          <textarea id="perceptron.examples" type="text">[[0.5,0.5,0],
- [-0.5,-0.5,1]]</textarea>
-        </li>
-        <li>
-          <button id="perceptron.learn">Learn</button>
-          <button id="perceptron.adaline_learn">Adaline Learn</button>
-        </li>
-      </ul>
+      <div>
+        <h2>Three classes</h2>
+        <p>
+          Classification with two features \(\{ x_1, x_2 \}\) as input and three
+          classes \(\{ 0, 1, 2 \}\) as output.
+        </p>
+        <p>
+          Using one-versus-rest (OvR).
+        </p>
+        <div style="display: flex;">
+          <canvas id="perceptron.2.canvas" width="128" height="128"></canvas>
+          <ul>
+            <li>Green: \(2\)</li>
+            <li>Blue: \(1\)</li>
+            <li>Red: \(0\)</li>
+            <li>X-axis: standardized \(x_1\), range: \([-2, 2]\)</li>
+            <li>Y-axis: standardized \(x_2\), range: \([-2, 2]\)</li>
+          </ul>
+        </div>
+        <ul>
+          <li>Class \(0\) vs. the rest:
+            <ul>
+              <li>
+                \(w_1\): <input id="perceptron.2.y_0_w_1" type="text" value="-0.5" />
+                <input id="perceptron.2.y_0_w_1_range" type="range" min="-1" max="1" step="any" value="-0.5" />
+              </li>
+              <li>
+                \(w_2\): <input id="perceptron.2.y_0_w_2" type="text" value="1" />
+                <input id="perceptron.2.y_0_w_2_range" type="range" min="-1" max="1" step="any" value="1" />
+              </li>
+              <li>
+                \(b\): <input id="perceptron.2.y_0_b" type="text" value="0" />
+                <input id="perceptron.2.y_0_b_range" type="range" min="-1" max="1" step="any" value="0" />
+              </li>
+            </ul>
+          </li>
+          <li>Class \(1\) vs. the rest:
+            <ul>
+              <li>
+                \(w_1\): <input id="perceptron.2.y_1_w_1" type="text" value="-0.5" />
+                <input id="perceptron.2.y_1_w_1_range" type="range" min="-1" max="1" step="any" value="-0.5" />
+              </li>
+              <li>
+                \(w_2\): <input id="perceptron.2.y_1_w_2" type="text" value="1" />
+                <input id="perceptron.2.y_1_w_2_range" type="range" min="-1" max="1" step="any" value="1" />
+              </li>
+              <li>
+                \(b\): <input id="perceptron.2.y_1_b" type="text" value="0" />
+                <input id="perceptron.2.y_1_b_range" type="range" min="-1" max="1" step="any" value="0" />
+              </li>
+            </ul>
+          </li>
+          <li>Class \(2\) vs. the rest:
+            <ul>
+              <li>
+                \(w_1\): <input id="perceptron.2.y_2_w_1" type="text" value="-0.5" />
+                <input id="perceptron.2.y_2_w_1_range" type="range" min="-1" max="1" step="any" value="-0.5" />
+              </li>
+              <li>
+                \(w_2\): <input id="perceptron.2.y_2_w_2" type="text" value="1" />
+                <input id="perceptron.2.y_2_w_2_range" type="range" min="-1" max="1" step="any" value="1" />
+              </li>
+              <li>
+                \(b\): <input id="perceptron.2.y_2_b" type="text" value="0" />
+                <input id="perceptron.2.y_2_b_range" type="range" min="-1" max="1" step="any" value="0" />
+              </li>
+            </ul>
+          </li>
+          <li>
+            Learning rate: <input id="perceptron.2.eta" type="text" value="0.01" />
+          </li>
+          <li>
+            Examples:<br/>
+            <textarea id="perceptron.2.examples" type="text">[[0.5,0.5,0]
+ [-0.5,-0.5,1]
+ [0.5,-0.5,2]
+]</textarea>
+          </li>
+          <li>
+            <button id="perceptron.2.adaline_learn">Adaline Learn</button>
+          </li>
+        </ul>
+      </div>
     </div>
   </body>
 </html>

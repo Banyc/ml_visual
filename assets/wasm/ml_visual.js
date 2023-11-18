@@ -160,6 +160,50 @@ export function perceptron_adaline_learn(examples, param, learning_rate) {
 }
 
 /**
+* @param {PerceptronParam} param_0
+* @param {PerceptronParam} param_1
+* @param {PerceptronParam} param_2
+* @param {Pixels2DWrapper} pixels
+*/
+export function perceptron_2_draw_classification(param_0, param_1, param_2, pixels) {
+    _assertClass(param_0, PerceptronParam);
+    var ptr0 = param_0.__destroy_into_raw();
+    _assertClass(param_1, PerceptronParam);
+    var ptr1 = param_1.__destroy_into_raw();
+    _assertClass(param_2, PerceptronParam);
+    var ptr2 = param_2.__destroy_into_raw();
+    _assertClass(pixels, Pixels2DWrapper);
+    wasm.perceptron_2_draw_classification(ptr0, ptr1, ptr2, pixels.__wbg_ptr);
+}
+
+/**
+* @param {string} examples
+* @param {Pixels2DWrapper} pixels
+*/
+export function perceptron_2_draw_examples(examples, pixels) {
+    const ptr0 = passStringToWasm0(examples, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const len0 = WASM_VECTOR_LEN;
+    _assertClass(pixels, Pixels2DWrapper);
+    wasm.perceptron_2_draw_examples(ptr0, len0, pixels.__wbg_ptr);
+}
+
+/**
+* @param {string} examples
+* @param {number} _class
+* @param {PerceptronParam} param
+* @param {number} learning_rate
+* @returns {PerceptronParam | undefined}
+*/
+export function perceptron_2_adaline_learn(examples, _class, param, learning_rate) {
+    const ptr0 = passStringToWasm0(examples, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const len0 = WASM_VECTOR_LEN;
+    _assertClass(param, PerceptronParam);
+    var ptr1 = param.__destroy_into_raw();
+    const ret = wasm.perceptron_2_adaline_learn(ptr0, len0, _class, ptr1, learning_rate);
+    return ret === 0 ? undefined : PerceptronParam.__wrap(ret);
+}
+
+/**
 */
 export class PerceptronExample {
 
@@ -175,28 +219,22 @@ export class PerceptronExample {
         wasm.__wbg_perceptronexample_free(ptr);
     }
     /**
-    * @param {number} x_1
-    * @param {number} x_2
+    * @param {PerceptronFeatureSet} feature
     * @param {boolean} y
     */
-    constructor(x_1, x_2, y) {
-        const ret = wasm.perceptronexample_new(x_1, x_2, y);
+    constructor(feature, y) {
+        _assertClass(feature, PerceptronFeatureSet);
+        var ptr0 = feature.__destroy_into_raw();
+        const ret = wasm.perceptronexample_new(ptr0, y);
         this.__wbg_ptr = ret >>> 0;
         return this;
     }
     /**
-    * @returns {number}
+    * @returns {PerceptronFeatureSet}
     */
-    x_1() {
-        const ret = wasm.perceptronexample_x_1(this.__wbg_ptr);
-        return ret;
-    }
-    /**
-    * @returns {number}
-    */
-    x_2() {
-        const ret = wasm.perceptronexample_x_2(this.__wbg_ptr);
-        return ret;
+    feature() {
+        const ret = wasm.perceptronexample_feature(this.__wbg_ptr);
+        return PerceptronFeatureSet.__wrap(ret);
     }
     /**
     * @returns {boolean}
@@ -204,6 +242,71 @@ export class PerceptronExample {
     y() {
         const ret = wasm.perceptronexample_y(this.__wbg_ptr);
         return ret !== 0;
+    }
+}
+/**
+*/
+export class PerceptronExample2 {
+
+    __destroy_into_raw() {
+        const ptr = this.__wbg_ptr;
+        this.__wbg_ptr = 0;
+
+        return ptr;
+    }
+
+    free() {
+        const ptr = this.__destroy_into_raw();
+        wasm.__wbg_perceptronexample2_free(ptr);
+    }
+    /**
+    * @param {PerceptronFeatureSet} feature
+    * @param {number} y
+    */
+    constructor(feature, y) {
+        _assertClass(feature, PerceptronFeatureSet);
+        var ptr0 = feature.__destroy_into_raw();
+        const ret = wasm.perceptronexample2_new(ptr0, y);
+        this.__wbg_ptr = ret >>> 0;
+        return this;
+    }
+    /**
+    * @returns {PerceptronFeatureSet}
+    */
+    feature() {
+        const ret = wasm.perceptronexample2_feature(this.__wbg_ptr);
+        return PerceptronFeatureSet.__wrap(ret);
+    }
+    /**
+    * @returns {number}
+    */
+    y() {
+        const ret = wasm.perceptronexample2_y(this.__wbg_ptr);
+        return ret;
+    }
+}
+/**
+*/
+export class PerceptronFeatureSet {
+
+    static __wrap(ptr) {
+        ptr = ptr >>> 0;
+        const obj = Object.create(PerceptronFeatureSet.prototype);
+        obj.__wbg_ptr = ptr;
+
+        return obj;
+    }
+
+    __destroy_into_raw() {
+        const ptr = this.__wbg_ptr;
+        this.__wbg_ptr = 0;
+
+        return ptr;
+    }
+
+    free() {
+        const ptr = this.__destroy_into_raw();
+        wasm.__wbg_perceptronfeatureset_free(ptr);
     }
 }
 /**
@@ -243,14 +346,14 @@ export class PerceptronParam {
     * @returns {number}
     */
     w_1() {
-        const ret = wasm.perceptronexample_x_1(this.__wbg_ptr);
+        const ret = wasm.perceptronparam_w_1(this.__wbg_ptr);
         return ret;
     }
     /**
     * @returns {number}
     */
     w_2() {
-        const ret = wasm.perceptronexample_x_2(this.__wbg_ptr);
+        const ret = wasm.perceptronparam_w_2(this.__wbg_ptr);
         return ret;
     }
     /**

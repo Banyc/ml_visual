@@ -1,67 +1,9 @@
 use olive_rs::{Pixel, RealPoint, RealSpace, BLUE, RED};
 use wasm_bindgen::prelude::*;
 
-use crate::{canvas::Pixels2DWrapper, math::StandardizedExt};
+use crate::{canvas::Pixels2DWrapper, math::StandardizedExt, perceptron::models};
 
-pub mod models {
-    use wasm_bindgen::prelude::*;
-
-    #[wasm_bindgen]
-    #[derive(Debug, Clone, Copy)]
-    pub struct PerceptronParam {
-        w_1: f64,
-        w_2: f64,
-        b: f64,
-    }
-
-    #[wasm_bindgen]
-    impl PerceptronParam {
-        #[wasm_bindgen(constructor)]
-        pub fn new(w_1: f64, w_2: f64, b: f64) -> Self {
-            Self { w_1, w_2, b }
-        }
-
-        pub fn w_1(&self) -> f64 {
-            self.w_1
-        }
-
-        pub fn w_2(&self) -> f64 {
-            self.w_2
-        }
-
-        pub fn b(&self) -> f64 {
-            self.b
-        }
-    }
-
-    #[wasm_bindgen]
-    #[derive(Debug, Clone, Copy)]
-    pub struct PerceptronExample {
-        x_1: f64,
-        x_2: f64,
-        y: bool,
-    }
-
-    #[wasm_bindgen]
-    impl PerceptronExample {
-        #[wasm_bindgen(constructor)]
-        pub fn new(x_1: f64, x_2: f64, y: bool) -> Self {
-            Self { x_1, x_2, y }
-        }
-
-        pub fn x_1(&self) -> f64 {
-            self.x_1
-        }
-
-        pub fn x_2(&self) -> f64 {
-            self.x_2
-        }
-
-        pub fn y(&self) -> bool {
-            self.y
-        }
-    }
-}
+use super::{decision_function, prediction_function};
 
 const X_1_RANGE: std::ops::RangeInclusive<f64> = -2.0..=2.0;
 const X_2_RANGE: std::ops::RangeInclusive<f64> = -2.0..=2.0;
@@ -75,7 +17,8 @@ pub fn perceptron_draw_classification(
     pixels.canvas().fill_by_function(&REAL_SPACE, |point| {
         let x_1 = point.x();
         let x_2 = point.y();
-        let res = prediction_function(x_1, param.w_1(), x_2, param.w_2(), param.b());
+        let feature = models::PerceptronFeatureSet::new(x_1, x_2);
+        let res = prediction_function(param, feature);
         let pixel = match res {
             true => Pixel::new(0, 0, 100, u8::MAX),
             false => Pixel::new(100, 0, 0, u8::MAX),
@@ -96,7 +39,7 @@ pub fn perceptron_draw_examples(examples: &str, pixels: &mut Pixels2DWrapper) {
             true => BLUE,
             false => RED,
         };
-        let point = RealPoint::new(example.x_1(), example.x_2());
+        let point = RealPoint::new(example.feature().x_1(), example.feature().x_2());
         pixels
             .canvas()
             .fill_real_circle(&REAL_SPACE, point, R, color)
@@ -149,7 +92,8 @@ fn parse_examples(examples: &str) -> Option<Vec<models::PerceptronExample>> {
                 0 => false,
                 _ => return Err(()),
             };
-            Ok(models::PerceptronExample::new(x_1, x_2, y))
+            let feature = models::PerceptronFeatureSet::new(x_1, x_2);
+            Ok(models::PerceptronExample::new(feature, y))
         })
         .collect();
     let Ok(examples) = examples else {
@@ -161,22 +105,19 @@ fn parse_examples(examples: &str) -> Option<Vec<models::PerceptronExample>> {
 fn standardize(
     examples: impl Iterator<Item = models::PerceptronExample> + Clone,
 ) -> impl Iterator<Item = models::PerceptronExample> + Clone {
-    let x_1 = examples.clone().map(|example| example.x_1()).standardized();
-    let x_2 = examples.clone().map(|example| example.x_2()).standardized();
+    let x_1 = examples
+        .clone()
+        .map(|example| example.feature().x_1())
+        .standardized();
+    let x_2 = examples
+        .clone()
+        .map(|example| example.feature().x_2())
+        .standardized();
 
-    examples
-        .zip(x_1)
-        .zip(x_2)
-        .map(|((example, x_1), x_2)| models::PerceptronExample::new(x_1, x_2, example.y()))
-}
-
-fn decision_function(x_1: f64, w_1: f64, x_2: f64, w_2: f64, b: f64) -> f64 {
-    // the net input function
-    x_1 * w_1 + x_2 * w_2 + b
-}
-
-fn prediction_function(x_1: f64, w_1: f64, x_2: f64, w_2: f64, b: f64) -> bool {
-    decision_function(x_1, w_1, x_2, w_2, b) >= 0.
+    x_1.zip(x_2)
+        .map(|(x_1, x_2)| models::PerceptronFeatureSet::new(x_1, x_2))
+        .zip(examples)
+        .map(|(feature, example)| models::PerceptronExample::new(feature, example.y()))
 }
 
 fn learn(
@@ -185,21 +126,15 @@ fn learn(
     learning_rate: f64,
 ) -> models::PerceptronParam {
     let example_and_y_hat = examples.map(|example| {
-        let y_hat = prediction_function(
-            example.x_1(),
-            param.w_1(),
-            example.x_2(),
-            param.w_2(),
-            param.b(),
-        );
+        let y_hat = prediction_function(param, example.feature());
         (example, y_hat)
     });
     example_and_y_hat.fold(param, |param, (example, y_hat)| {
         let diff = i8::from(example.y()) - i8::from(y_hat);
         let update = f64::from(diff) * learning_rate;
 
-        let w_1 = param.w_1() + update * example.x_1();
-        let w_2 = param.w_2() + update * example.x_2();
+        let w_1 = param.w_1() + update * example.feature().x_1();
+        let w_2 = param.w_2() + update * example.feature().x_2();
         let b = param.b() + update;
         models::PerceptronParam::new(w_1, w_2, b)
     })
@@ -217,13 +152,7 @@ fn adaline_learn(
         //   between the activation function and the example label
         // - The example label is either 0 or 1
         // - `+ 0.5` pushes the threshold to 0.5
-        let activation = decision_function(
-            example.x_1(),
-            param.w_1(),
-            example.x_2(),
-            param.w_2(),
-            param.b(),
-        ) + 0.5;
+        let activation = decision_function(param, example.feature()) + 0.5;
 
         // `example.y()`: the example label
         let diff = f64::from(example.y()) - activation;
@@ -232,11 +161,11 @@ fn adaline_learn(
     let sum_differences: f64 = example_and_diff.clone().map(|(_, diff)| diff).sum();
     let sum_x_1_weighted_differences: f64 = example_and_diff
         .clone()
-        .map(|(example, diff)| example.x_1() * diff)
+        .map(|(example, diff)| example.feature().x_1() * diff)
         .sum();
     let sum_x_2_weighted_differences: f64 = example_and_diff
         .clone()
-        .map(|(example, diff)| example.x_2() * diff)
+        .map(|(example, diff)| example.feature().x_2() * diff)
         .sum();
     let n = examples.count();
 
@@ -268,18 +197,18 @@ mod tests {
         let examples = "[[3, 2.1, 1]]";
         let examples = parse_examples(examples).unwrap();
         assert_eq!(examples.len(), 1);
-        assert_eq!(examples[0].x_1(), 3.0);
-        assert_eq!(examples[0].x_2(), 2.1);
+        assert_eq!(examples[0].feature().x_1(), 3.0);
+        assert_eq!(examples[0].feature().x_2(), 2.1);
         assert!(examples[0].y());
 
         let examples = "[[3, 2.1, 1], [3, 2.1, 1]]";
         let examples = parse_examples(examples).unwrap();
         assert_eq!(examples.len(), 2);
-        assert_eq!(examples[0].x_1(), 3.0);
-        assert_eq!(examples[0].x_2(), 2.1);
+        assert_eq!(examples[0].feature().x_1(), 3.0);
+        assert_eq!(examples[0].feature().x_2(), 2.1);
         assert!(examples[0].y());
-        assert_eq!(examples[1].x_1(), 3.0);
-        assert_eq!(examples[1].x_2(), 2.1);
+        assert_eq!(examples[1].feature().x_1(), 3.0);
+        assert_eq!(examples[1].feature().x_2(), 2.1);
         assert!(examples[1].y());
     }
 }
