@@ -7,33 +7,67 @@ pub fn lerp(v: &std::ops::RangeInclusive<f64>, t: f64) -> f64 {
     (1.0 - t) * v.start() + t * v.end()
 }
 
+#[derive(Debug, Clone)]
+pub struct Standardized<I> {
+    iter: I,
+}
+impl<I: Iterator> Iterator for Standardized<I> {
+    type Item = I::Item;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.iter.next()
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.iter.size_hint()
+    }
+}
 pub trait StandardizedExt: Iterator {
     /// Standardizes the iterator based on the iterator itself.
-    fn standardized(self) -> impl Iterator<Item = f64> + Clone;
+    fn standardized(self) -> Standardized<std::iter::Map<Self, impl FnMut(f64) -> f64 + Clone>>
+    where
+        Self: Clone;
     /// Fits a standard scaler from the elements of the iterator,
     /// so that you can use this scaler to standardize another iterator.
-    fn standard_scaler(self) -> StandardScaler;
+    fn standard_scaler(self) -> StandardScaler
+    where
+        Self: Clone;
     /// Standardizes the iterator with a standard scaler.
     ///
     /// This only scales the iterator based on the provided `sc`,
     /// not on the iterator itself.
-    fn standardized_with(self, sc: StandardScaler) -> impl Iterator<Item = f64> + Clone;
+    fn standardized_with(
+        self,
+        sc: StandardScaler,
+    ) -> Standardized<std::iter::Map<Self, impl FnMut(f64) -> f64 + Clone>>
+    where
+        Self: Sized;
 }
 impl<T> StandardizedExt for T
 where
-    T: Iterator<Item = f64> + Clone,
+    T: Iterator<Item = f64>,
 {
-    fn standardized(self) -> impl Iterator<Item = f64> + Clone {
+    fn standardized(self) -> Standardized<std::iter::Map<Self, impl FnMut(f64) -> f64 + Clone>>
+    where
+        Self: Clone,
+    {
         let sc = self.clone().standard_scaler();
         self.standardized_with(sc)
     }
 
-    fn standard_scaler(self) -> StandardScaler {
+    fn standard_scaler(self) -> StandardScaler
+    where
+        Self: Clone,
+    {
         StandardScaler::fit(self)
     }
 
-    fn standardized_with(self, sc: StandardScaler) -> impl Iterator<Item = f64> + Clone {
-        self.map(move |x| (x - sc.mean()) / sc.standard_deviation())
+    fn standardized_with(
+        self,
+        sc: StandardScaler,
+    ) -> Standardized<std::iter::Map<Self, impl FnMut(f64) -> f64 + Clone>> {
+        let iter = self.map(move |x| (x - sc.mean()) / sc.standard_deviation());
+        Standardized { iter }
     }
 }
 
