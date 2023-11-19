@@ -1,3 +1,7 @@
+use crate::math::StandardizedExt;
+
+use self::models::{MulticlassExample, TwoFeatures};
+
 pub mod adaline;
 pub mod binary_class;
 pub mod perceptron;
@@ -92,4 +96,22 @@ pub fn prediction_function(
     feature: models::TwoFeatures,
 ) -> bool {
     decision_function(param, feature) >= 0.
+}
+
+pub fn standardize(
+    examples: impl Iterator<Item = MulticlassExample> + Clone,
+) -> impl Iterator<Item = MulticlassExample> + Clone {
+    let x_1 = examples
+        .clone()
+        .map(|example| example.feature().x_1())
+        .standardized();
+    let x_2 = examples
+        .clone()
+        .map(|example| example.feature().x_2())
+        .standardized();
+
+    x_1.zip(x_2)
+        .map(|(x_1, x_2)| TwoFeatures::new(x_1, x_2))
+        .zip(examples)
+        .map(|(feature, example)| MulticlassExample::new(feature, example.y()))
 }

@@ -2,7 +2,8 @@ use olive_rs::{Pixel, RealPoint, RealSpace, BLUE, GREEN, RED};
 use wasm_bindgen::prelude::*;
 
 use crate::{
-    canvas::Pixels2DWrapper, linear::models::LinearTwoFeatureParam, math::StandardizedExt,
+    canvas::Pixels2DWrapper,
+    linear::{models::LinearTwoFeatureParam, standardize},
 };
 
 use super::{
@@ -90,24 +91,6 @@ pub fn parse_examples(examples: &str) -> Option<Vec<MulticlassExample>> {
         return None;
     };
     Some(examples)
-}
-
-pub fn standardize(
-    examples: impl Iterator<Item = MulticlassExample> + Clone,
-) -> impl Iterator<Item = MulticlassExample> + Clone {
-    let x_1 = examples
-        .clone()
-        .map(|example| example.feature().x_1())
-        .standardized();
-    let x_2 = examples
-        .clone()
-        .map(|example| example.feature().x_2())
-        .standardized();
-
-    x_1.zip(x_2)
-        .map(|(x_1, x_2)| TwoFeatures::new(x_1, x_2))
-        .zip(examples)
-        .map(|(feature, example)| MulticlassExample::new(feature, example.y()))
 }
 
 #[cfg(test)]
