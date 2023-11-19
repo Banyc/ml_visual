@@ -6,51 +6,51 @@ export function setup() {
     let pixels_wrapper = new lib.Pixels2DWrapper(size_x, size_y)
 
     let w_1 = document.getElementById("linear.binary_class.w_1")
-    w_1.addEventListener("input", function(ev) {
+    w_1.addEventListener("input", function (ev) {
         document.getElementById("linear.binary_class.w_1_range").value = this.value
         draw_canvas(pixels_wrapper)
     })
     let w_2 = document.getElementById("linear.binary_class.w_2")
-    w_2.addEventListener("input", function(ev) {
+    w_2.addEventListener("input", function (ev) {
         document.getElementById("linear.binary_class.w_2_range").value = this.value
         draw_canvas(pixels_wrapper)
     })
     let b = document.getElementById("linear.binary_class.b")
-    b.addEventListener("input", function(ev) {
+    b.addEventListener("input", function (ev) {
         document.getElementById("linear.binary_class.b_range").value = this.value
         draw_canvas(pixels_wrapper)
     })
 
     let w_1_range = document.getElementById("linear.binary_class.w_1_range")
-    w_1_range.addEventListener("input", function(ev) {
+    w_1_range.addEventListener("input", function (ev) {
         document.getElementById("linear.binary_class.w_1").value = this.value
         draw_canvas(pixels_wrapper)
     })
-    
+
     let w_2_range = document.getElementById("linear.binary_class.w_2_range")
-    w_2_range.addEventListener("input", function(ev) {
+    w_2_range.addEventListener("input", function (ev) {
         document.getElementById("linear.binary_class.w_2").value = this.value
         draw_canvas(pixels_wrapper)
     })
-    
+
     let b_range = document.getElementById("linear.binary_class.b_range")
-    b_range.addEventListener("input", function(ev) {
+    b_range.addEventListener("input", function (ev) {
         document.getElementById("linear.binary_class.b").value = this.value
         draw_canvas(pixels_wrapper)
     })
 
     let examples = document.getElementById("linear.binary_class.examples")
-    examples.addEventListener("change", function(ev) {
+    examples.addEventListener("change", function (ev) {
         draw_canvas(pixels_wrapper)
     })
 
     let perceptron_learn = document.getElementById("linear.binary_class.perceptron_learn")
-    perceptron_learn.addEventListener("click", function(ev) {
+    perceptron_learn.addEventListener("click", function (ev) {
         learn_and_draw("perceptron", pixels_wrapper)
     })
 
     let adaline_learn = document.getElementById("linear.binary_class.adaline_learn")
-    adaline_learn.addEventListener("click", function(ev) {
+    adaline_learn.addEventListener("click", function (ev) {
         learn_and_draw("adaline", pixels_wrapper)
     })
 

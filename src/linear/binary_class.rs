@@ -12,7 +12,7 @@ use super::{models::TwoFeatures, prediction_function};
 pub mod models {
     use wasm_bindgen::prelude::*;
 
-    use crate::linear::models::TwoFeatures;
+    use crate::linear::models::{MulticlassExample, TwoFeatures};
 
     #[wasm_bindgen]
     #[derive(Debug, Clone, Copy)]
@@ -34,6 +34,12 @@ pub mod models {
 
         pub fn y(&self) -> bool {
             self.y
+        }
+    }
+
+    impl From<BinaryClassExample> for MulticlassExample {
+        fn from(value: BinaryClassExample) -> Self {
+            MulticlassExample::new(value.feature(), u8::from(value.y()))
         }
     }
 }

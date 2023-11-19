@@ -47,6 +47,13 @@ function addHeapObject(obj) {
     return idx;
 }
 
+function _assertClass(instance, klass) {
+    if (!(instance instanceof klass)) {
+        throw new Error(`expected instance of ${klass.name}`);
+    }
+    return instance.ptr;
+}
+
 let WASM_VECTOR_LEN = 0;
 
 const cachedTextEncoder = (typeof TextEncoder !== 'undefined' ? new TextEncoder('utf-8') : { encode: () => { throw Error('TextEncoder not available') } } );
@@ -101,13 +108,6 @@ function passStringToWasm0(arg, malloc, realloc) {
     WASM_VECTOR_LEN = offset;
     return ptr;
 }
-
-function _assertClass(instance, klass) {
-    if (!(instance instanceof klass)) {
-        throw new Error(`expected instance of ${klass.name}`);
-    }
-    return instance.ptr;
-}
 /**
 * @param {string} examples
 * @param {LinearTwoFeatureParam} param
@@ -120,6 +120,22 @@ export function perceptron_learn_binary_class(examples, param, learning_rate) {
     _assertClass(param, LinearTwoFeatureParam);
     var ptr1 = param.__destroy_into_raw();
     const ret = wasm.perceptron_learn_binary_class(ptr0, len0, ptr1, learning_rate);
+    return ret === 0 ? undefined : LinearTwoFeatureParam.__wrap(ret);
+}
+
+/**
+* @param {string} examples
+* @param {number} _class
+* @param {LinearTwoFeatureParam} param
+* @param {number} learning_rate
+* @returns {LinearTwoFeatureParam | undefined}
+*/
+export function perceptron_learn_multiclass(examples, _class, param, learning_rate) {
+    const ptr0 = passStringToWasm0(examples, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const len0 = WASM_VECTOR_LEN;
+    _assertClass(param, LinearTwoFeatureParam);
+    var ptr1 = param.__destroy_into_raw();
+    const ret = wasm.perceptron_learn_multiclass(ptr0, len0, _class, ptr1, learning_rate);
     return ret === 0 ? undefined : LinearTwoFeatureParam.__wrap(ret);
 }
 

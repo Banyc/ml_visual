@@ -13,10 +13,7 @@ pub fn adaline_learn_binary_class(
     let Some(examples) = binary_class::parse_examples(examples) else {
         return None;
     };
-    let examples = binary_class::standardize(examples.into_iter()).map(|example| {
-        let y = u8::from(example.y());
-        MulticlassExample::new(example.feature(), y)
-    });
+    let examples = binary_class::standardize(examples.into_iter()).map(Into::into);
     Some(learn(examples, 1, param, learning_rate))
 }
 
