@@ -140,6 +140,7 @@ function learn_and_draw(algorithm, pixels_wrapper) {
 
     const examples = document.getElementById("linear.three_classes.examples").value
     const learning_rate = parseFloat(document.getElementById("linear.three_classes.eta").value)
+    const regularization_parameter = parseFloat(document.getElementById("linear.three_classes.lambda").value)
 
     let param_0_new = null
     let param_1_new = null
@@ -153,9 +154,9 @@ function learn_and_draw(algorithm, pixels_wrapper) {
         param_1_new = lib.perceptron_learn_multiclass(examples, 1, param_1, learning_rate)
         param_2_new = lib.perceptron_learn_multiclass(examples, 2, param_2, learning_rate)
     } else if (algorithm === "logistic_regression") {
-        param_0_new = lib.logistic_regression_learn_multiclass(examples, 0, param_0, learning_rate)
-        param_1_new = lib.logistic_regression_learn_multiclass(examples, 1, param_1, learning_rate)
-        param_2_new = lib.logistic_regression_learn_multiclass(examples, 2, param_2, learning_rate)
+        param_0_new = lib.logistic_regression_learn_multiclass(examples, 0, param_0, learning_rate, regularization_parameter)
+        param_1_new = lib.logistic_regression_learn_multiclass(examples, 1, param_1, learning_rate, regularization_parameter)
+        param_2_new = lib.logistic_regression_learn_multiclass(examples, 2, param_2, learning_rate, regularization_parameter)
     }
 
     document.getElementById("linear.three_classes.y_0_w_1").value = param_0_new.w_1()

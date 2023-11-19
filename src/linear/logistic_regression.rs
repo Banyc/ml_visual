@@ -12,8 +12,15 @@ pub fn logistic_regression_learn_binary_class(
     examples: &str,
     param: LinearTwoFeatureParam,
     learning_rate: f64,
+    regularization_parameter: f64,
 ) -> Option<LinearTwoFeatureParam> {
-    logistic_regression_learn_multiclass(examples, 1, param, learning_rate)
+    logistic_regression_learn_multiclass(
+        examples,
+        1,
+        param,
+        learning_rate,
+        regularization_parameter,
+    )
 }
 
 #[wasm_bindgen]
@@ -22,12 +29,19 @@ pub fn logistic_regression_learn_multiclass(
     class: u8,
     param: LinearTwoFeatureParam,
     learning_rate: f64,
+    regularization_parameter: f64,
 ) -> Option<LinearTwoFeatureParam> {
     let Some(examples) = parse_examples(examples) else {
         return None;
     };
     let examples = standardize(examples.into_iter());
-    Some(learn(examples, class, param, learning_rate))
+    Some(learn(
+        examples,
+        class,
+        param,
+        learning_rate,
+        regularization_parameter,
+    ))
 }
 
 fn learn(
@@ -35,6 +49,7 @@ fn learn(
     class: u8,
     param: LinearTwoFeatureParam,
     learning_rate: f64,
+    regularization_parameter: f64,
 ) -> LinearTwoFeatureParam {
     let example_and_diff = examples.clone().map(|example| {
         let net_input = net_input(param, example.feature());
@@ -56,8 +71,10 @@ fn learn(
     let n = examples.count();
 
     let gradient_at_b = -sum_differences / n as f64;
-    let gradient_at_w_1 = -sum_x_1_weighted_differences / n as f64;
-    let gradient_at_w_2 = -sum_x_2_weighted_differences / n as f64;
+    let gradient_at_w_1 = -sum_x_1_weighted_differences / n as f64
+        + regularization_parameter * param.w_1() / n as f64;
+    let gradient_at_w_2 = -sum_x_2_weighted_differences / n as f64
+        + regularization_parameter * param.w_2() / n as f64;
 
     let change_b = -learning_rate * gradient_at_b;
     let change_w_1 = -learning_rate * gradient_at_w_1;

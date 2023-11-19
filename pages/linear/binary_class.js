@@ -68,6 +68,7 @@ function learn_and_draw(algorithm, pixels_wrapper) {
     const b = parseFloat(document.getElementById("linear.binary_class.b").value)
     let param = new lib.LinearTwoFeatureParam(w_1, w_2, b)
     const learning_rate = parseFloat(document.getElementById("linear.binary_class.eta").value)
+    const regularization_parameter = parseFloat(document.getElementById("linear.binary_class.lambda").value)
     const examples = document.getElementById("linear.binary_class.examples").value
 
     let param_new = null
@@ -76,7 +77,7 @@ function learn_and_draw(algorithm, pixels_wrapper) {
     } else if (algorithm === "perceptron") {
         param_new = lib.perceptron_learn_binary_class(examples, param, learning_rate)
     } else if (algorithm === "logistic_regression") {
-        param_new = lib.logistic_regression_learn_binary_class(examples, param, learning_rate)
+        param_new = lib.logistic_regression_learn_binary_class(examples, param, learning_rate, regularization_parameter)
     }
     if (param_new === undefined) {
         return
