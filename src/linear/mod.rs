@@ -1,19 +1,21 @@
+pub mod adaline;
+pub mod binary_class;
+pub mod perceptron;
 pub mod three_classes;
-pub mod two_classes;
 
 pub mod models {
     use wasm_bindgen::prelude::*;
 
     #[wasm_bindgen]
     #[derive(Debug, Clone, Copy)]
-    pub struct PerceptronParam {
+    pub struct LinearTwoFeatureParam {
         w_1: f64,
         w_2: f64,
         b: f64,
     }
 
     #[wasm_bindgen]
-    impl PerceptronParam {
+    impl LinearTwoFeatureParam {
         #[wasm_bindgen(constructor)]
         pub fn new(w_1: f64, w_2: f64, b: f64) -> Self {
             Self { w_1, w_2, b }
@@ -34,35 +36,35 @@ pub mod models {
 
     #[wasm_bindgen]
     #[derive(Debug, Clone, Copy)]
-    pub struct PerceptronExample {
-        feature: PerceptronFeatureSet,
-        y: bool,
+    pub struct MulticlassExample {
+        feature: TwoFeatures,
+        y: u8,
     }
 
     #[wasm_bindgen]
-    impl PerceptronExample {
+    impl MulticlassExample {
         #[wasm_bindgen(constructor)]
-        pub fn new(feature: PerceptronFeatureSet, y: bool) -> Self {
+        pub fn new(feature: TwoFeatures, y: u8) -> Self {
             Self { feature, y }
         }
 
-        pub fn feature(&self) -> PerceptronFeatureSet {
+        pub fn feature(&self) -> TwoFeatures {
             self.feature
         }
 
-        pub fn y(&self) -> bool {
+        pub fn y(&self) -> u8 {
             self.y
         }
     }
 
     #[wasm_bindgen]
     #[derive(Debug, Clone, Copy)]
-    pub struct PerceptronFeatureSet {
+    pub struct TwoFeatures {
         x_1: f64,
         x_2: f64,
     }
 
-    impl PerceptronFeatureSet {
+    impl TwoFeatures {
         pub fn new(x_1: f64, x_2: f64) -> Self {
             Self { x_1, x_2 }
         }
@@ -78,16 +80,16 @@ pub mod models {
 }
 
 pub fn decision_function(
-    param: models::PerceptronParam,
-    feature: models::PerceptronFeatureSet,
+    param: models::LinearTwoFeatureParam,
+    feature: models::TwoFeatures,
 ) -> f64 {
     // the net input function
     feature.x_1() * param.w_1() + feature.x_2() * param.w_2() + param.b()
 }
 
 pub fn prediction_function(
-    param: models::PerceptronParam,
-    feature: models::PerceptronFeatureSet,
+    param: models::LinearTwoFeatureParam,
+    feature: models::TwoFeatures,
 ) -> bool {
     decision_function(param, feature) >= 0.
 }
