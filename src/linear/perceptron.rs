@@ -2,7 +2,7 @@ use wasm_bindgen::prelude::*;
 
 use crate::linear::models::LinearTwoFeatureParam;
 
-use super::{models::MulticlassExample, prediction_function, standardize, three_classes};
+use super::{models::MulticlassExample, parse_examples, prediction_function, standardize};
 
 #[wasm_bindgen]
 pub fn perceptron_learn_binary_class(
@@ -20,7 +20,7 @@ pub fn perceptron_learn_multiclass(
     param: LinearTwoFeatureParam,
     learning_rate: f64,
 ) -> Option<LinearTwoFeatureParam> {
-    let Some(examples) = three_classes::parse_examples(examples) else {
+    let Some(examples) = parse_examples(examples) else {
         return None;
     };
     let examples = standardize(examples.into_iter());

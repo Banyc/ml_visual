@@ -54,6 +54,11 @@ export function setup() {
         learn_and_draw("adaline", pixels_wrapper)
     })
 
+    let logistic_regression_learn = document.getElementById("linear.binary_class.logistic_regression_learn")
+    logistic_regression_learn.addEventListener("click", function (ev) {
+        learn_and_draw("logistic_regression", pixels_wrapper)
+    })
+
     draw_canvas(pixels_wrapper)
 }
 
@@ -70,6 +75,8 @@ function learn_and_draw(algorithm, pixels_wrapper) {
         param_new = lib.adaline_learn_binary_class(examples, param, learning_rate)
     } else if (algorithm === "perceptron") {
         param_new = lib.perceptron_learn_binary_class(examples, param, learning_rate)
+    } else if (algorithm === "logistic_regression") {
+        param_new = lib.logistic_regression_learn_binary_class(examples, param, learning_rate)
     }
     if (param_new === undefined) {
         return

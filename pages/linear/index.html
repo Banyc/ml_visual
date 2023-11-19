@@ -51,14 +51,15 @@
             Learning rate: <input id="linear.binary_class.eta" type="text" value="0.01" />
           </li>
           <li>
-            Examples:<br/>
-            <textarea id="linear.binary_class.examples" type="text">[[0.5,0.5,0]
- [-0.5,-0.5,1]
+            Examples \((x_1, x_2, y)\):<br/>
+            <textarea id="linear.binary_class.examples" type="text" rows="3">[[1,1,0]
+ [-1,-1,1]
 ]</textarea>
           </li>
           <li>
             <button id="linear.binary_class.perceptron_learn">Perceptron learn</button>
             <button id="linear.binary_class.adaline_learn">Adaline learn</button>
+            <button id="linear.binary_class.logistic_regression_learn">Logistic regression learn</button>
           </li>
         </ul>
       </div>
@@ -134,15 +135,16 @@
             Learning rate: <input id="linear.three_classes.eta" type="text" value="0.01" />
           </li>
           <li>
-            Examples:<br/>
-            <textarea id="linear.three_classes.examples" type="text">[[0.5,0.5,0]
- [-0.5,-0.5,1]
- [0.5,-0.5,2]
+            Examples \((x_1, x_2, y)\):<br/>
+            <textarea id="linear.three_classes.examples" type="text" rows="4">[[1,1,0]
+ [-1,-1,1]
+ [1,-1,2]
 ]</textarea>
           </li>
           <li>
             <button id="linear.three_classes.perceptron_learn">Perceptron learn</button>
             <button id="linear.three_classes.adaline_learn">Adaline learn</button>
+            <button id="linear.three_classes.logistic_regression_learn">Logistic regression learn</button>
           </li>
         </ul>
       </div>

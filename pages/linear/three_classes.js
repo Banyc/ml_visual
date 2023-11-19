@@ -113,6 +113,11 @@ export function setup() {
         learn_and_draw("adaline", pixels_wrapper)
     })
 
+    let logistic_regression_learn = document.getElementById("linear.three_classes.logistic_regression_learn")
+    logistic_regression_learn.addEventListener("click", function (ev) {
+        learn_and_draw("logistic_regression", pixels_wrapper)
+    })
+
     draw_canvas(pixels_wrapper)
 }
 
@@ -147,6 +152,10 @@ function learn_and_draw(algorithm, pixels_wrapper) {
         param_0_new = lib.perceptron_learn_multiclass(examples, 0, param_0, learning_rate)
         param_1_new = lib.perceptron_learn_multiclass(examples, 1, param_1, learning_rate)
         param_2_new = lib.perceptron_learn_multiclass(examples, 2, param_2, learning_rate)
+    } else if (algorithm === "logistic_regression") {
+        param_0_new = lib.logistic_regression_learn_multiclass(examples, 0, param_0, learning_rate)
+        param_1_new = lib.logistic_regression_learn_multiclass(examples, 1, param_1, learning_rate)
+        param_2_new = lib.logistic_regression_learn_multiclass(examples, 2, param_2, learning_rate)
     }
 
     document.getElementById("linear.three_classes.y_0_w_1").value = param_0_new.w_1()

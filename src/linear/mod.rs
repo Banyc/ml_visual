@@ -3,9 +3,9 @@ use crate::math::StandardizedExt;
 use self::models::{MulticlassExample, TwoFeatures};
 
 pub mod adaline;
-pub mod binary_class;
+pub mod draw;
+pub mod logistic_regression;
 pub mod perceptron;
-pub mod three_classes;
 
 pub mod models {
     use wasm_bindgen::prelude::*;
@@ -83,10 +83,7 @@ pub mod models {
     }
 }
 
-pub fn decision_function(
-    param: models::LinearTwoFeatureParam,
-    feature: models::TwoFeatures,
-) -> f64 {
+pub fn net_input(param: models::LinearTwoFeatureParam, feature: models::TwoFeatures) -> f64 {
     // the net input function
     feature.x_1() * param.w_1() + feature.x_2() * param.w_2() + param.b()
 }
@@ -95,7 +92,7 @@ pub fn prediction_function(
     param: models::LinearTwoFeatureParam,
     feature: models::TwoFeatures,
 ) -> bool {
-    decision_function(param, feature) >= 0.
+    net_input(param, feature) >= 0.
 }
 
 pub fn standardize(
@@ -114,4 +111,58 @@ pub fn standardize(
         .map(|(x_1, x_2)| TwoFeatures::new(x_1, x_2))
         .zip(examples)
         .map(|(feature, example)| MulticlassExample::new(feature, example.y()))
+}
+
+pub fn parse_examples(examples: &str) -> Option<Vec<MulticlassExample>> {
+    let examples = jsonc_parser::parse_to_serde_value(examples, &Default::default())
+        .ok()
+        .flatten();
+    let Some(examples) = examples else {
+        return None;
+    };
+    let examples: Option<Vec<(f64, f64, u8)>> =
+        serde_json::from_value::<Vec<(f64, f64, u8)>>(examples).ok();
+    let Some(examples) = examples else {
+        return None;
+    };
+    let examples: Result<Vec<MulticlassExample>, ()> = examples
+        .into_iter()
+        .map(|(x_1, x_2, y)| {
+            let feature = TwoFeatures::new(x_1, x_2);
+            Ok(MulticlassExample::new(feature, y))
+        })
+        .collect();
+    let Ok(examples) = examples else {
+        return None;
+    };
+    Some(examples)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_parse_examples() {
+        let examples = "[]";
+        let examples = parse_examples(examples).unwrap();
+        assert!(examples.is_empty());
+
+        let examples = "[[3, 2.1, 1]]";
+        let examples = parse_examples(examples).unwrap();
+        assert_eq!(examples.len(), 1);
+        assert_eq!(examples[0].feature().x_1(), 3.0);
+        assert_eq!(examples[0].feature().x_2(), 2.1);
+        assert_eq!(examples[0].y(), 1);
+
+        let examples = "[[3, 2.1, 1], [3, 2.1, 1]]";
+        let examples = parse_examples(examples).unwrap();
+        assert_eq!(examples.len(), 2);
+        assert_eq!(examples[0].feature().x_1(), 3.0);
+        assert_eq!(examples[0].feature().x_2(), 2.1);
+        assert_eq!(examples[0].y(), 1);
+        assert_eq!(examples[1].feature().x_1(), 3.0);
+        assert_eq!(examples[1].feature().x_2(), 2.1);
+        assert_eq!(examples[1].y(), 1);
+    }
 }

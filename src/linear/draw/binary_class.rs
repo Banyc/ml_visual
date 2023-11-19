@@ -1,9 +1,15 @@
 use olive_rs::{Pixel, RealSpace};
 use wasm_bindgen::prelude::*;
 
-use crate::{canvas::Pixels2DWrapper, linear::models::LinearTwoFeatureParam};
+use crate::{
+    canvas::Pixels2DWrapper,
+    linear::{
+        models::{LinearTwoFeatureParam, TwoFeatures},
+        prediction_function,
+    },
+};
 
-use super::{models::TwoFeatures, prediction_function, three_classes::draw_examples_three_classes};
+use super::three_classes::draw_examples_three_classes;
 
 const X_1_RANGE: std::ops::RangeInclusive<f64> = -2.0..=2.0;
 const X_2_RANGE: std::ops::RangeInclusive<f64> = -2.0..=2.0;
