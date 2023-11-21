@@ -1,5 +1,4 @@
-use std::f64::consts::E;
-
+use math::ml::sigmoid;
 use wasm_bindgen::prelude::*;
 
 use super::{
@@ -70,10 +69,10 @@ fn learn(
         .sum();
     let n = examples.count();
 
-    let gradient_at_b = -sum_differences / n as f64;
-    let gradient_at_w_1 = -sum_x_1_weighted_differences / n as f64
+    let gradient_at_b = -2.0 * sum_differences / n as f64;
+    let gradient_at_w_1 = -2.0 * sum_x_1_weighted_differences / n as f64
         + regularization_parameter * param.w_1() / n as f64;
-    let gradient_at_w_2 = -sum_x_2_weighted_differences / n as f64
+    let gradient_at_w_2 = -2.0 * sum_x_2_weighted_differences / n as f64
         + regularization_parameter * param.w_2() / n as f64;
 
     let change_b = -learning_rate * gradient_at_b;
@@ -88,5 +87,5 @@ fn learn(
 }
 
 fn decision_function(net_input: f64) -> f64 {
-    1.0 / (1.0 + E.powf(-net_input))
+    sigmoid(net_input)
 }

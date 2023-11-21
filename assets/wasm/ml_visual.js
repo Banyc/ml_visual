@@ -168,6 +168,28 @@ export function draw_examples_three_classes(examples, pixels) {
 }
 
 /**
+* @param {LinearTwoFeatureParam} param
+* @param {Pixels2DWrapper} pixels
+*/
+export function linear_draw_classification_binary_class(param, pixels) {
+    _assertClass(param, LinearTwoFeatureParam);
+    var ptr0 = param.__destroy_into_raw();
+    _assertClass(pixels, Pixels2DWrapper);
+    wasm.linear_draw_classification_binary_class(ptr0, pixels.__wbg_ptr);
+}
+
+/**
+* @param {string} examples
+* @param {Pixels2DWrapper} pixels
+*/
+export function draw_examples_binary_class(examples, pixels) {
+    const ptr0 = passStringToWasm0(examples, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const len0 = WASM_VECTOR_LEN;
+    _assertClass(pixels, Pixels2DWrapper);
+    wasm.draw_examples_binary_class(ptr0, len0, pixels.__wbg_ptr);
+}
+
+/**
 * @param {string} examples
 * @param {LinearTwoFeatureParam} param
 * @param {number} learning_rate
@@ -198,28 +220,6 @@ export function logistic_regression_learn_multiclass(examples, _class, param, le
     var ptr1 = param.__destroy_into_raw();
     const ret = wasm.logistic_regression_learn_multiclass(ptr0, len0, _class, ptr1, learning_rate, regularization_parameter);
     return ret === 0 ? undefined : LinearTwoFeatureParam.__wrap(ret);
-}
-
-/**
-* @param {LinearTwoFeatureParam} param
-* @param {Pixels2DWrapper} pixels
-*/
-export function linear_draw_classification_binary_class(param, pixels) {
-    _assertClass(param, LinearTwoFeatureParam);
-    var ptr0 = param.__destroy_into_raw();
-    _assertClass(pixels, Pixels2DWrapper);
-    wasm.linear_draw_classification_binary_class(ptr0, pixels.__wbg_ptr);
-}
-
-/**
-* @param {string} examples
-* @param {Pixels2DWrapper} pixels
-*/
-export function draw_examples_binary_class(examples, pixels) {
-    const ptr0 = passStringToWasm0(examples, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-    const len0 = WASM_VECTOR_LEN;
-    _assertClass(pixels, Pixels2DWrapper);
-    wasm.draw_examples_binary_class(ptr0, len0, pixels.__wbg_ptr);
 }
 
 /**

@@ -4,8 +4,6 @@ use std::io::Write;
 mod canvas;
 #[allow(dead_code)]
 mod linear;
-#[allow(dead_code)]
-mod math;
 
 const WASM_MEMORY_BUFFER_SIZE: usize = 1 << 10;
 pub static mut WASM_MEMORY_BUFFER: [u8; WASM_MEMORY_BUFFER_SIZE] = [0; WASM_MEMORY_BUFFER_SIZE];

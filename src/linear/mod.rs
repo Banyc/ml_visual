@@ -1,4 +1,4 @@
-use crate::math::StandardizedExt;
+use math::statistics::StandardizedExt;
 
 use self::models::{MulticlassExample, TwoFeatures};
 
