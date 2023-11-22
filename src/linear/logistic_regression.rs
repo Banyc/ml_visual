@@ -86,6 +86,6 @@ fn learn(
     )
 }
 
-fn decision_function(net_input: f64) -> f64 {
+pub fn decision_function(net_input: f64) -> f64 {
     sigmoid(net_input)
 }

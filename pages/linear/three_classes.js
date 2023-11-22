@@ -5,6 +5,11 @@ export function setup() {
     const size_y = 128
     let pixels_wrapper = new lib.Pixels2DWrapper(size_x, size_y)
 
+    let draw_prob = document.getElementById("linear.three_classes.draw_prob")
+    draw_prob.addEventListener("input", function (ev) {
+        draw_canvas(pixels_wrapper)
+    })
+
     let y_0_w_1 = document.getElementById("linear.three_classes.y_0_w_1")
     y_0_w_1.addEventListener("input", function (ev) {
         document.getElementById("linear.three_classes.y_0_w_1_range").value = this.value
@@ -201,8 +206,13 @@ function draw_canvas(pixels_wrapper) {
     let param_2 = new lib.LinearTwoFeatureParam(y_2_w_1, y_2_w_2, y_2_b)
 
     const examples = document.getElementById("linear.three_classes.examples").value
+    const draw_prob = document.getElementById("linear.three_classes.draw_prob").checked
 
-    lib.linear_draw_classification_three_classes(param_0, param_1, param_2, pixels_wrapper)
+    if (draw_prob) {
+        lib.logistic_regression_draw_classification_three_classes(param_0, param_1, param_2, pixels_wrapper)
+    } else {
+        lib.linear_draw_classification_three_classes(param_0, param_1, param_2, pixels_wrapper)
+    }
     lib.draw_examples_three_classes(examples, pixels_wrapper)
 
     let canvas_perceptron = document.getElementById("linear.three_classes.canvas")

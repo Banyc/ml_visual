@@ -5,6 +5,11 @@ export function setup() {
     const size_y = 128
     let pixels_wrapper = new lib.Pixels2DWrapper(size_x, size_y)
 
+    let draw_prob = document.getElementById("linear.binary_class.draw_prob")
+    draw_prob.addEventListener("input", function (ev) {
+        draw_canvas(pixels_wrapper)
+    })
+
     let w_1 = document.getElementById("linear.binary_class.w_1")
     w_1.addEventListener("input", function (ev) {
         document.getElementById("linear.binary_class.w_1_range").value = this.value
@@ -98,9 +103,14 @@ function draw_canvas(pixels_wrapper) {
     const w_2 = parseFloat(document.getElementById("linear.binary_class.w_2").value)
     const b = parseFloat(document.getElementById("linear.binary_class.b").value)
     const examples = document.getElementById("linear.binary_class.examples").value
+    const draw_prob = document.getElementById("linear.binary_class.draw_prob").checked
     let param = new lib.LinearTwoFeatureParam(w_1, w_2, b)
 
-    lib.linear_draw_classification_binary_class(param, pixels_wrapper)
+    if (draw_prob) {
+        lib.logistic_regression_draw_classification_binary_class(param, pixels_wrapper)
+    } else {
+        lib.linear_draw_classification_binary_class(param, pixels_wrapper)
+    }
     lib.draw_examples_binary_class(examples, pixels_wrapper)
 
     let canvas_perceptron = document.getElementById("linear.binary_class.canvas")
