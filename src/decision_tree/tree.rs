@@ -1,26 +1,137 @@
+use std::sync::Arc;
+
+use getset::{CopyGetters, Getters};
 use math::prob::{FractionExt, Probability, WeightedSumExt};
 use rand::Rng;
 
-pub struct BinaryDecisionTree {}
+#[derive(Debug, Clone, Getters, CopyGetters)]
+pub struct Example {
+    #[getset(get = "pub")]
+    features: Arc<[f64]>,
+    #[getset(get_copy = "pub")]
+    true_label: usize,
+}
+impl Example {
+    pub fn new(features: Arc<[f64]>, true_label: usize) -> Self {
+        Self {
+            features,
+            true_label,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Getters, CopyGetters)]
+pub struct ExampleBatch {
+    #[getset(get = "pub")]
+    examples: Arc<[Arc<Example>]>,
+    #[getset(get_copy = "pub")]
+    features: usize,
+    #[getset(get_copy = "pub")]
+    classes: usize,
+}
+impl ExampleBatch {
+    pub fn new(examples: Arc<[Arc<Example>]>, features: usize, classes: usize) -> Option<Self> {
+        for example in examples.iter() {
+            if example.true_label() >= classes {
+                return None;
+            }
+            if example.features.len() != features {
+                return None;
+            }
+        }
+        Some(Self {
+            examples,
+            features,
+            classes,
+        })
+    }
+}
+
+pub struct BinaryDecisionTree {
+    root: BinaryNode,
+}
+impl BinaryDecisionTree {
+    pub fn new(example_batch: ExampleBatch) -> Self {
+        let root = BinaryNode::new(example_batch);
+        Self { root }
+    }
+}
+
+struct BinaryNode {
+    example_batch: ExampleBatch,
+    left: Option<Box<BinaryNode>>,
+    right: Option<Box<BinaryNode>>,
+}
+impl BinaryNode {
+    pub fn new(example_batch: ExampleBatch) -> Self {
+        Self {
+            example_batch,
+            left: None,
+            right: None,
+        }
+    }
+
+    pub fn impurity(&self) -> f64 {
+        let mut classified_examples = vec![];
+        self.example_batch.examples().iter().for_each(|example| {
+            let min_len = example.true_label() + 1;
+            if classified_examples.len() < min_len {
+                classified_examples.resize(min_len, 0);
+            }
+            classified_examples[example.true_label()] += 1;
+        });
+        impurity_from_classified_examples(classified_examples.into_iter())
+    }
+
+    pub fn split(&mut self, feature: usize, feature_predicate: impl Fn(f64) -> bool) {
+        assert!(feature < self.example_batch.features());
+        let (left, right) = self.example_batch.examples().iter().fold(
+            (vec![], vec![]),
+            |(mut left, mut right), example| {
+                let x = example.features()[feature];
+                match feature_predicate(x) {
+                    true => &mut right,
+                    false => &mut left,
+                }
+                .push(Arc::clone(example));
+                (left, right)
+            },
+        );
+        let mut node = [left, right].into_iter().map(|examples| {
+            let batch = ExampleBatch::new(
+                examples.into(),
+                self.example_batch.features(),
+                self.example_batch.classes(),
+            )
+            .unwrap();
+            BinaryNode::new(batch)
+        });
+        self.left = Some(node.next().unwrap().into());
+        self.right = Some(node.next().unwrap().into());
+    }
+}
+
+pub fn impurity_from_classified_examples(
+    classified_examples: impl Iterator<Item = usize> + Clone,
+) -> f64 {
+    gini_impurity(
+        classified_examples
+            .map(|x| x as f64)
+            .fraction()
+            .map(|x| x.unwrap()),
+    )
+    .unwrap()
+}
 
 pub fn information_gain_from_classified_examples(
     parent_classified_examples: impl Iterator<Item = usize> + Clone,
     child_classified_examples: &[impl Iterator<Item = usize> + Clone],
 ) -> f64 {
-    fn impurity(classified_examples: impl Iterator<Item = usize> + Clone) -> f64 {
-        gini_impurity(
-            classified_examples
-                .map(|x| x as f64)
-                .fraction()
-                .map(|x| x.unwrap()),
-        )
-        .unwrap()
-    }
-    let parent_impurity = impurity(parent_classified_examples);
+    let parent_impurity = impurity_from_classified_examples(parent_classified_examples);
     let child_impurity = child_classified_examples
         .iter()
         .cloned()
-        .map(|c| impurity(c));
+        .map(|c| impurity_from_classified_examples(c));
 
     let child_examples = child_classified_examples.iter().cloned().map(|c| c.sum());
 
