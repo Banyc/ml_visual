@@ -1,8 +1,13 @@
 use std::{cell::RefCell, collections::VecDeque, rc::Rc, sync::Arc};
 
-use getset::{CopyGetters, Getters, MutGetters};
-use math::prob::{FractionExt, Probability, WeightedSumExt};
-use rand::Rng;
+use getset::{CopyGetters, Getters};
+use math::{
+    prob::{FractionExt, Probability, WeightedSumExt},
+    statistics::MeanExt,
+};
+use rand::{seq::SliceRandom, Rng};
+
+const CONSTANT_FEATURE_THRESHOLD: f64 = 1e-7;
 
 #[derive(Debug, Clone, Getters, CopyGetters)]
 pub struct Example {
@@ -17,6 +22,10 @@ impl Example {
             features,
             true_label,
         }
+    }
+
+    pub fn feature_value(&self, feature: usize) -> f64 {
+        self.features[feature]
     }
 }
 
@@ -45,18 +54,32 @@ impl ExampleBatch {
             classes,
         })
     }
+
+    #[must_use]
+    pub fn len(&self) -> usize {
+        self.examples.len()
+    }
+
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
 }
 
+#[derive(Debug)]
 pub struct BinaryDecisionTree {
     root: Rc<RefCell<BinaryNode>>,
 }
 impl BinaryDecisionTree {
-    pub fn new(example_batch: ExampleBatch) -> Self {
-        let root = BinaryNode::new(example_batch);
+    pub fn new(example_batch: ExampleBatch) -> Option<Self> {
+        let Some(root) = BinaryNode::new(example_batch) else {
+            return None;
+        };
         let root = Rc::new(RefCell::new(root));
-        Self { root }
+        Some(Self { root })
     }
 
+    /// - Ref: <https://github.com/scikit-learn/scikit-learn/blob/0816e0012ce6446f28ffbb5430e4afad2fa44125/sklearn/tree/_tree.pyx#L166>
     pub fn learn(&mut self) {
         let mut breath_first_queue = VecDeque::new();
         breath_first_queue.push_back(Rc::clone(&self.root));
@@ -72,33 +95,84 @@ impl BinaryDecisionTree {
     }
 }
 
-#[derive(Debug, Getters, MutGetters)]
+#[derive(Debug, Getters)]
 pub struct BinaryNode {
+    #[getset(get = "pub")]
     example_batch: ExampleBatch,
     children: Option<BinaryNodeChildren>,
 }
 impl BinaryNode {
-    pub fn new(example_batch: ExampleBatch) -> Self {
-        Self {
+    pub fn new(example_batch: ExampleBatch) -> Option<Self> {
+        if example_batch.is_empty() {
+            return None;
+        }
+        Some(Self {
             example_batch,
             children: None,
-        }
+        })
     }
 
+    /// - Ref: <https://github.com/scikit-learn/scikit-learn/blob/c08afded996d08a7dde8441708ed9ca4cbb40559/sklearn/tree/_splitter.pyx#L289>
     pub fn split_best(&mut self) {
+        #[derive(Debug)]
+        struct Best {
+            ig: f64,
+            children: BinaryNodeChildren,
+        }
+        let impurity = self.impurity();
+        if impurity == 0.0 {
+            return;
+        }
+        if self.example_batch.features() <= 1 {
+            return;
+        }
         // Shuffle features
-        todo!();
-        let mut best = None;
+        let mut features: Vec<_> = (0..self.example_batch.features()).collect();
+        features.shuffle(&mut rand::thread_rng());
+        let mut best = None::<Best>;
         // For each feature
-        {
+        while let Some(feature) = features.pop() {
             // Sort the feature values
-            todo!();
+            let mut examples: Vec<_> = self.example_batch.examples().iter().collect();
+            examples.sort_by(|a, b| {
+                a.feature_value(feature)
+                    .partial_cmp(&b.feature_value(feature))
+                    .unwrap()
+            });
+            let examples = examples;
+            // Skip constant features
+            if examples.last().unwrap().feature_value(feature)
+                - examples.first().unwrap().feature_value(feature)
+                < CONSTANT_FEATURE_THRESHOLD
+            {
+                continue;
+            }
             // Loop through the feature values and find the best threshold
-            todo!();
+            for win in examples.windows(2) {
+                let threshold = win
+                    .iter()
+                    .map(|example| example.feature_value(feature))
+                    .mean();
+                let Some(children) = self.split(feature, threshold) else {
+                    continue;
+                };
+                let ig = children.information_gain(impurity);
+                let set_best = move |best: &mut Option<Best>| {
+                    *best = Some(Best { ig, children });
+                };
+                match &best {
+                    Some(best_so_far) => {
+                        if ig > best_so_far.ig {
+                            set_best(&mut best);
+                        }
+                    }
+                    None => set_best(&mut best),
+                }
+            }
         }
         // Split the node
-        if let Some((feature, threshold)) = best {
-            self.split(feature, threshold);
+        if let Some(best) = best {
+            self.set_children(best.children);
         }
     }
 
@@ -114,7 +188,7 @@ impl BinaryNode {
         impurity_from_classified_examples(classified_examples.into_iter())
     }
 
-    pub fn split(&mut self, feature: usize, threshold: f64) {
+    pub fn split(&self, feature: usize, threshold: f64) -> Option<BinaryNodeChildren> {
         assert!(feature < self.example_batch.features());
         let (left, right) = self.example_batch.examples().iter().fold(
             (vec![], vec![]),
@@ -139,7 +213,15 @@ impl BinaryNode {
         });
         let left = node.next().unwrap();
         let right = node.next().unwrap();
-        self.children = Some(BinaryNodeChildren::new(feature, threshold, left, right));
+        let (left, right) = match (left, right) {
+            (Some(left), Some(right)) => (left, right),
+            _ => return None,
+        };
+        Some(BinaryNodeChildren::new(feature, threshold, left, right))
+    }
+
+    pub fn set_children(&mut self, children: BinaryNodeChildren) {
+        self.children = Some(children);
     }
 
     pub fn children(&self) -> Option<&BinaryNodeChildren> {
@@ -177,6 +259,13 @@ impl BinaryNodeChildren {
 
     pub fn right_ptr(&self) -> &Rc<RefCell<BinaryNode>> {
         &self.right
+    }
+
+    pub fn information_gain(&self, parent_impurity: f64) -> f64 {
+        let child = [&self.left, &self.right].into_iter();
+        let child_impurity = child.clone().map(|node| node.borrow().impurity());
+        let child_examples = child.map(|node| node.borrow().example_batch().len());
+        information_gain(parent_impurity, child_impurity, child_examples)
     }
 }
 
@@ -303,5 +392,28 @@ mod tests {
             &[left_child.into_iter(), right_child.into_iter()],
         );
         assert!(ig.closes_to(1.0 / 6.0));
+    }
+
+    #[test]
+    fn test_tree() {
+        let examples = [
+            ([0.0, 0.0], 0),
+            ([0.0, 0.0], 0),
+            ([1.0, 0.0], 1),
+            ([1.0, 0.0], 1),
+            ([0.0, 1.0], 1),
+            ([0.0, 1.0], 1),
+            ([1.0, 1.0], 0),
+            ([1.0, 1.0], 0),
+        ];
+        let examples: Arc<[Arc<Example>]> = examples
+            .into_iter()
+            .map(|(features, label)| Example::new(features.into(), label))
+            .map(Arc::new)
+            .collect();
+        let batch = ExampleBatch::new(examples, 2, 2).unwrap();
+        let mut tree = BinaryDecisionTree::new(batch).unwrap();
+        tree.learn();
+        dbg!(&tree);
     }
 }
