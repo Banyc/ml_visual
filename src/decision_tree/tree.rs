@@ -1,6 +1,6 @@
-use std::sync::Arc;
+use std::{cell::RefCell, collections::VecDeque, rc::Rc, sync::Arc};
 
-use getset::{CopyGetters, Getters};
+use getset::{CopyGetters, Getters, MutGetters};
 use math::prob::{FractionExt, Probability, WeightedSumExt};
 use rand::Rng;
 
@@ -48,26 +48,57 @@ impl ExampleBatch {
 }
 
 pub struct BinaryDecisionTree {
-    root: BinaryNode,
+    root: Rc<RefCell<BinaryNode>>,
 }
 impl BinaryDecisionTree {
     pub fn new(example_batch: ExampleBatch) -> Self {
         let root = BinaryNode::new(example_batch);
+        let root = Rc::new(RefCell::new(root));
         Self { root }
+    }
+
+    pub fn learn(&mut self) {
+        let mut breath_first_queue = VecDeque::new();
+        breath_first_queue.push_back(Rc::clone(&self.root));
+        while let Some(ptr) = breath_first_queue.pop_front() {
+            let mut node = ptr.as_ref().borrow_mut();
+            node.split_best();
+            // Breath-first-search the other nodes
+            if let Some(children) = node.children() {
+                breath_first_queue.push_back(Rc::clone(children.left_ptr()));
+                breath_first_queue.push_back(Rc::clone(children.right_ptr()));
+            }
+        }
     }
 }
 
-struct BinaryNode {
+#[derive(Debug, Getters, MutGetters)]
+pub struct BinaryNode {
     example_batch: ExampleBatch,
-    left: Option<Box<BinaryNode>>,
-    right: Option<Box<BinaryNode>>,
+    children: Option<BinaryNodeChildren>,
 }
 impl BinaryNode {
     pub fn new(example_batch: ExampleBatch) -> Self {
         Self {
             example_batch,
-            left: None,
-            right: None,
+            children: None,
+        }
+    }
+
+    pub fn split_best(&mut self) {
+        // Shuffle features
+        todo!();
+        let mut best = None;
+        // For each feature
+        {
+            // Sort the feature values
+            todo!();
+            // Loop through the feature values and find the best threshold
+            todo!();
+        }
+        // Split the node
+        if let Some((feature, threshold)) = best {
+            self.split(feature, threshold);
         }
     }
 
@@ -83,15 +114,15 @@ impl BinaryNode {
         impurity_from_classified_examples(classified_examples.into_iter())
     }
 
-    pub fn split(&mut self, feature: usize, feature_predicate: impl Fn(f64) -> bool) {
+    pub fn split(&mut self, feature: usize, threshold: f64) {
         assert!(feature < self.example_batch.features());
         let (left, right) = self.example_batch.examples().iter().fold(
             (vec![], vec![]),
             |(mut left, mut right), example| {
                 let x = example.features()[feature];
-                match feature_predicate(x) {
-                    true => &mut right,
-                    false => &mut left,
+                match x <= threshold {
+                    true => &mut left,
+                    false => &mut right,
                 }
                 .push(Arc::clone(example));
                 (left, right)
@@ -106,8 +137,46 @@ impl BinaryNode {
             .unwrap();
             BinaryNode::new(batch)
         });
-        self.left = Some(node.next().unwrap().into());
-        self.right = Some(node.next().unwrap().into());
+        let left = node.next().unwrap();
+        let right = node.next().unwrap();
+        self.children = Some(BinaryNodeChildren::new(feature, threshold, left, right));
+    }
+
+    pub fn children(&self) -> Option<&BinaryNodeChildren> {
+        self.children.as_ref()
+    }
+}
+
+#[derive(Debug, CopyGetters)]
+pub struct BinaryNodeChildren {
+    #[getset(get_copy = "pub")]
+    cond_feature: usize,
+    #[getset(get_copy = "pub")]
+    cond_threshold: f64,
+    left: Rc<RefCell<BinaryNode>>,
+    right: Rc<RefCell<BinaryNode>>,
+}
+impl BinaryNodeChildren {
+    pub fn new(
+        cond_feature: usize,
+        cond_threshold: f64,
+        left: BinaryNode,
+        right: BinaryNode,
+    ) -> Self {
+        Self {
+            cond_feature,
+            cond_threshold,
+            left: Rc::new(RefCell::new(left)),
+            right: Rc::new(RefCell::new(right)),
+        }
+    }
+
+    pub fn left_ptr(&self) -> &Rc<RefCell<BinaryNode>> {
+        &self.left
+    }
+
+    pub fn right_ptr(&self) -> &Rc<RefCell<BinaryNode>> {
+        &self.right
     }
 }
 
