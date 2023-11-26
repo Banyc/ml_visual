@@ -190,7 +190,7 @@ impl BinaryNode {
             (vec![], vec![]),
             |(mut left, mut right), example| {
                 let x = example.features()[feature];
-                match x <= threshold {
+                match side(x, threshold) {
                     true => &mut left,
                     false => &mut right,
                 }
@@ -287,7 +287,7 @@ impl BinaryNodeChildren {
     }
 
     pub fn predict(&self, features: &[f64]) -> usize {
-        match features[self.cond_feature] <= self.cond_threshold {
+        match side(features[self.cond_feature], self.cond_threshold) {
             true => self.left.borrow(),
             false => self.right.borrow(),
         }
@@ -363,6 +363,10 @@ pub fn shuffle<T>(a: &mut [T]) {
         let j = rng.gen_range(0..=i);
         a.swap(i, j);
     }
+}
+
+fn side(feature_value: f64, threshold: f64) -> bool {
+    feature_value <= threshold
 }
 
 #[cfg(test)]
