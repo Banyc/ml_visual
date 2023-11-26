@@ -145,7 +145,6 @@ impl fmt::Display for BinaryDecisionTreeDisplayDot<'_> {
 
         struct Feature<'caller> {
             name: &'caller str,
-            color: (u8, u8, u8),
         }
 
         fn write_pre_order(
@@ -153,6 +152,7 @@ impl fmt::Display for BinaryDecisionTreeDisplayDot<'_> {
             node: &BinaryNode,
             new_node_id: &mut impl FnMut() -> String,
             features: &[Feature],
+            colors: &[(u8, u8, u8)],
         ) -> Result<String, fmt::Error> {
             let id = new_node_id();
 
@@ -180,7 +180,7 @@ impl fmt::Display for BinaryDecisionTreeDisplayDot<'_> {
             let max_count = values.iter().filter(|x| **x == max).count();
             let color: Cow<str> = match max_count {
                 1 => {
-                    let (r, g, b) = features[max_index].color;
+                    let (r, g, b) = colors[max_index];
                     format!("color=\"#{r:x}{g:x}{b:x}\"").into()
                 }
                 _ => "".into(),
@@ -190,8 +190,9 @@ impl fmt::Display for BinaryDecisionTreeDisplayDot<'_> {
             writeln!(f, "{node_def}")?;
 
             if let Some(children) = node.children() {
-                let left_id = write_pre_order(f, &children.left(), new_node_id, features)?;
-                let right_id = write_pre_order(f, &children.right(), new_node_id, features)?;
+                let left_id = write_pre_order(f, &children.left(), new_node_id, features, colors)?;
+                let right_id =
+                    write_pre_order(f, &children.right(), new_node_id, features, colors)?;
                 let left_edge = format!("{id} -> {left_id}");
                 let right_edge = format!("{id} -> {right_id}");
                 writeln!(f, "{left_edge}")?;
@@ -201,18 +202,17 @@ impl fmt::Display for BinaryDecisionTreeDisplayDot<'_> {
             Ok(id)
         }
 
-        let colors = brew_colors(self.feature_names.len());
         let features: Vec<_> = self
             .feature_names
             .iter()
-            .zip(colors)
-            .map(|(name, color)| Feature { name, color })
+            .map(|name| Feature { name })
             .collect();
 
         let root = self.tree.root();
+        let colors = brew_colors(root.example_batch().classes());
 
         writeln!(f, "digraph {{")?;
-        write_pre_order(f, &root, &mut new_node_id, &features)?;
+        write_pre_order(f, &root, &mut new_node_id, &features, &colors)?;
         writeln!(f, "}}")?;
 
         Ok(())
@@ -586,14 +586,14 @@ mod tests {
             ([0.0, 1.0], 1),
             ([1.0, 1.0], 0),
             ([1.0, 1.0], 0),
-            ([1.0, 1.0], 0),
+            ([1.0, 1.0], 2),
         ];
         let examples: Arc<[Arc<Example>]> = examples
             .into_iter()
             .map(|(features, label)| Example::new(features.into(), label))
             .map(Arc::new)
             .collect();
-        let batch = ExampleBatch::new(examples, 2, 2).unwrap();
+        let batch = ExampleBatch::new(examples, 2, 3).unwrap();
         let mut tree = BinaryDecisionTree::new(batch).unwrap();
         tree.learn();
         dbg!(&tree);
