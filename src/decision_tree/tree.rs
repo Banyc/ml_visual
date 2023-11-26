@@ -1,7 +1,15 @@
-use std::{cell::RefCell, collections::VecDeque, rc::Rc, sync::Arc};
+use std::{
+    borrow::Cow,
+    cell::{Ref, RefCell},
+    collections::VecDeque,
+    fmt,
+    rc::Rc,
+    sync::Arc,
+};
 
 use getset::{CopyGetters, Getters};
 use math::{
+    graphics::brew_colors,
     prob::{FractionExt, Probability, WeightedSumExt},
     statistics::MeanExt,
 };
@@ -97,6 +105,10 @@ impl BinaryDecisionTree {
     pub fn predict(&self, features: &[f64]) -> usize {
         self.root.borrow().predict(features)
     }
+
+    pub fn root(&self) -> Ref<'_, BinaryNode> {
+        Ref::map(self.root.borrow(), |x| x)
+    }
 }
 impl Clone for BinaryDecisionTree {
     fn clone(&self) -> Self {
@@ -104,6 +116,106 @@ impl Clone for BinaryDecisionTree {
         Self {
             root: Rc::new(RefCell::new(root)),
         }
+    }
+}
+
+#[derive(Debug)]
+/// Display the tree in Graphviz DOT language
+pub struct BinaryDecisionTreeDisplayDot<'caller> {
+    tree: &'caller BinaryDecisionTree,
+    feature_names: &'caller [String],
+}
+impl<'caller> BinaryDecisionTreeDisplayDot<'caller> {
+    pub fn new(tree: &'caller BinaryDecisionTree, feature_names: &'caller [String]) -> Self {
+        assert_eq!(tree.root().example_batch().features(), feature_names.len());
+        Self {
+            tree,
+            feature_names,
+        }
+    }
+}
+impl fmt::Display for BinaryDecisionTreeDisplayDot<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let mut id = 0;
+        let mut new_node_id = || -> String {
+            let node_id = format!("n{id}");
+            id += 1;
+            node_id
+        };
+
+        struct Feature<'caller> {
+            name: &'caller str,
+            color: (u8, u8, u8),
+        }
+
+        fn write_pre_order(
+            f: &mut fmt::Formatter<'_>,
+            node: &BinaryNode,
+            new_node_id: &mut impl FnMut() -> String,
+            features: &[Feature],
+        ) -> Result<String, fmt::Error> {
+            let id = new_node_id();
+
+            let children = node
+                .children()
+                .map(|c| (&features[c.cond_feature()].name, c.cond_threshold));
+            let impurity = node.impurity();
+            let examples = node.example_batch().examples().len();
+            let values = node.classified_examples();
+
+            let mut label = String::new();
+            if let Some((feature_name, threshold)) = children {
+                label.push_str(&format!("{feature_name} <= {threshold}\\n"));
+            }
+            label.push_str(&format!("impurity = {impurity:.3}\\n"));
+            label.push_str(&format!("examples = {examples}\\n"));
+            label.push_str(&format!("values = {values:?}\\n"));
+
+            let (max_index, max) = values
+                .iter()
+                .cloned()
+                .enumerate()
+                .max_by_key(|(_, x)| *x)
+                .unwrap();
+            let max_count = values.iter().filter(|x| **x == max).count();
+            let color: Cow<str> = match max_count {
+                1 => {
+                    let (r, g, b) = features[max_index].color;
+                    format!("color=\"#{r:x}{g:x}{b:x}\"").into()
+                }
+                _ => "".into(),
+            };
+
+            let node_def = format!("{id}[shape=box label=\"{label}\" {color}]");
+            writeln!(f, "{node_def}")?;
+
+            if let Some(children) = node.children() {
+                let left_id = write_pre_order(f, &children.left(), new_node_id, features)?;
+                let right_id = write_pre_order(f, &children.right(), new_node_id, features)?;
+                let left_edge = format!("{id} -> {left_id}");
+                let right_edge = format!("{id} -> {right_id}");
+                writeln!(f, "{left_edge}")?;
+                writeln!(f, "{right_edge}")?;
+            }
+
+            Ok(id)
+        }
+
+        let colors = brew_colors(self.feature_names.len());
+        let features: Vec<_> = self
+            .feature_names
+            .iter()
+            .zip(colors)
+            .map(|(name, color)| Feature { name, color })
+            .collect();
+
+        let root = self.tree.root();
+
+        writeln!(f, "digraph {{")?;
+        write_pre_order(f, &root, &mut new_node_id, &features)?;
+        writeln!(f, "}}")?;
+
+        Ok(())
     }
 }
 
@@ -287,12 +399,20 @@ impl BinaryNodeChildren {
         }
     }
 
-    pub fn left_ptr(&self) -> &Rc<RefCell<BinaryNode>> {
+    pub(self) fn left_ptr(&self) -> &Rc<RefCell<BinaryNode>> {
         &self.left
     }
 
-    pub fn right_ptr(&self) -> &Rc<RefCell<BinaryNode>> {
+    pub(self) fn right_ptr(&self) -> &Rc<RefCell<BinaryNode>> {
         &self.right
+    }
+
+    pub fn left(&self) -> Ref<'_, BinaryNode> {
+        Ref::map(self.left.borrow(), |x| x)
+    }
+
+    pub fn right(&self) -> Ref<'_, BinaryNode> {
+        Ref::map(self.right.borrow(), |x| x)
     }
 
     pub fn information_gain(&self, parent_impurity: f64) -> f64 {
@@ -481,5 +601,8 @@ mod tests {
         assert_eq!(tree.predict(&[1.0, 0.0]), 1);
         assert_eq!(tree.predict(&[0.0, 1.0]), 1);
         assert_eq!(tree.predict(&[1.0, 1.0]), 0);
+        let features = ["x_1", "x_2"].map(|x| x.into());
+        let display = BinaryDecisionTreeDisplayDot::new(&tree, &features);
+        println!("{display}");
     }
 }

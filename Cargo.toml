@@ -13,7 +13,7 @@ crate-type = ["cdylib"]
 getset = "0.1.2"
 js-sys = "0.3.65"
 jsonc-parser = { version = "0.23.0", features = ["serde"] }
-math = { git = "https://github.com/banyc/math.git", rev = "4e0df2344ca9519fe00583afaca5f96cf304b9e3" }
+math = { git = "https://github.com/banyc/math.git", rev = "034a5f5023e08158f4ca45ea90896237938f1e9b" }
 olive-rs = { git = "https://github.com/banyc/olive-rs.git", rev = "0fbb30fed48eff9d6e450a3bb3300123bdf67d74" }
 rand = "0.8.5"
 serde = { version = "1.0.193", features = ["derive"] }

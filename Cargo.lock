@@ -176,7 +176,7 @@ checksum = "b5e6163cb8c49088c2c36f57875e58ccd8c87c7427f7fbd50ea6710b2f3f2e8f"
 [[package]]
 name = "math"
 version = "0.1.0"
-source = "git+https://github.com/banyc/math.git?rev=4e0df2344ca9519fe00583afaca5f96cf304b9e3#4e0df2344ca9519fe00583afaca5f96cf304b9e3"
+source = "git+https://github.com/banyc/math.git?rev=034a5f5023e08158f4ca45ea90896237938f1e9b#034a5f5023e08158f4ca45ea90896237938f1e9b"
 dependencies = [
  "getset",
  "serde",
