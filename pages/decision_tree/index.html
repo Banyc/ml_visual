@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script type="module" src="main.js"></script>
+  </head>
+  <body>
+    <div>
+      <h1>Decision tree</h1>
+      <div>
+        <h2>Binary decision tree</h2>
+        <ul>
+          <li>
+            Feature names:<br/>
+            <textarea id="decision_tree.features" type="text" rows="1">["x_1", "x_2"]</textarea>
+          </li>
+          <li>
+            Examples \((x_1, x_2, ..., x_m, y)\):<br/>
+            <textarea id="decision_tree.examples" type="text" rows="5">[[0,0,0]
+ [1,0,1]
+ [0,1,1]
+ [1,1,0]
+]</textarea>
+          </li>
+          <li>
+            <div><div id="graph"></div></div>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </body>
+</html>

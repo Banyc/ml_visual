@@ -115,8 +115,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fe9006bed769170c11f845cf00c7c1e9092aeb3f268e007c3e760ac68008070f"
 dependencies = [
  "cfg-if",
+ "js-sys",
  "libc",
  "wasi",
+ "wasm-bindgen",
 ]
 
 [[package]]
@@ -187,6 +189,7 @@ dependencies = [
 name = "ml_visual"
 version = "0.1.0"
 dependencies = [
+ "getrandom",
  "getset",
  "js-sys",
  "jsonc-parser",

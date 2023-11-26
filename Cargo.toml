@@ -10,6 +10,7 @@ edition = "2021"
 crate-type = ["cdylib"]
 
 [dependencies]
+getrandom = { version = "0.2.11", features = ["js"] }
 getset = "0.1.2"
 js-sys = "0.3.65"
 jsonc-parser = { version = "0.23.0", features = ["serde"] }
