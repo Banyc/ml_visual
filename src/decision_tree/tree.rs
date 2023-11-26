@@ -93,6 +93,10 @@ impl BinaryDecisionTree {
             }
         }
     }
+
+    pub fn predict(&self, features: &[f64]) -> usize {
+        self.root.borrow().predict(features)
+    }
 }
 
 #[derive(Debug, Getters)]
@@ -134,7 +138,7 @@ impl BinaryNode {
         while let Some(feature) = features.pop() {
             // Sort the feature values
             let mut examples: Vec<_> = self.example_batch.examples().iter().collect();
-            examples.sort_by(|a, b| {
+            examples.sort_unstable_by(|a, b| {
                 a.feature_value(feature)
                     .partial_cmp(&b.feature_value(feature))
                     .unwrap()
@@ -177,15 +181,7 @@ impl BinaryNode {
     }
 
     pub fn impurity(&self) -> f64 {
-        let mut classified_examples = vec![];
-        self.example_batch.examples().iter().for_each(|example| {
-            let min_len = example.true_label() + 1;
-            if classified_examples.len() < min_len {
-                classified_examples.resize(min_len, 0);
-            }
-            classified_examples[example.true_label()] += 1;
-        });
-        impurity_from_classified_examples(classified_examples.into_iter())
+        impurity_from_classified_examples(self.classified_examples().into_iter())
     }
 
     pub fn split(&self, feature: usize, threshold: f64) -> Option<BinaryNodeChildren> {
@@ -227,6 +223,28 @@ impl BinaryNode {
     pub fn children(&self) -> Option<&BinaryNodeChildren> {
         self.children.as_ref()
     }
+
+    pub fn predict(&self, features: &[f64]) -> usize {
+        if let Some(children) = &self.children {
+            return children.predict(features);
+        }
+
+        let (i, _) = self
+            .classified_examples()
+            .into_iter()
+            .enumerate()
+            .max_by_key(|(_i, n)| *n)
+            .unwrap();
+        i
+    }
+
+    fn classified_examples(&self) -> Vec<usize> {
+        let mut classified_examples = vec![0; self.example_batch.classes()];
+        self.example_batch.examples().iter().for_each(|example| {
+            classified_examples[example.true_label()] += 1;
+        });
+        classified_examples
+    }
 }
 
 #[derive(Debug, CopyGetters)]
@@ -266,6 +284,14 @@ impl BinaryNodeChildren {
         let child_impurity = child.clone().map(|node| node.borrow().impurity());
         let child_examples = child.map(|node| node.borrow().example_batch().len());
         information_gain(parent_impurity, child_impurity, child_examples)
+    }
+
+    pub fn predict(&self, features: &[f64]) -> usize {
+        match features[self.cond_feature] <= self.cond_threshold {
+            true => self.left.borrow(),
+            false => self.right.borrow(),
+        }
+        .predict(features)
     }
 }
 
@@ -399,10 +425,14 @@ mod tests {
         let examples = [
             ([0.0, 0.0], 0),
             ([0.0, 0.0], 0),
+            ([0.0, 0.0], 0),
+            ([1.0, 0.0], 1),
             ([1.0, 0.0], 1),
             ([1.0, 0.0], 1),
             ([0.0, 1.0], 1),
             ([0.0, 1.0], 1),
+            ([0.0, 1.0], 1),
+            ([1.0, 1.0], 0),
             ([1.0, 1.0], 0),
             ([1.0, 1.0], 0),
         ];
@@ -415,5 +445,9 @@ mod tests {
         let mut tree = BinaryDecisionTree::new(batch).unwrap();
         tree.learn();
         dbg!(&tree);
+        assert_eq!(tree.predict(&[0.0, 0.0]), 0);
+        assert_eq!(tree.predict(&[1.0, 0.0]), 1);
+        assert_eq!(tree.predict(&[0.0, 1.0]), 1);
+        assert_eq!(tree.predict(&[1.0, 1.0]), 0);
     }
 }
