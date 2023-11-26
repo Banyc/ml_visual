@@ -98,6 +98,14 @@ impl BinaryDecisionTree {
         self.root.borrow().predict(features)
     }
 }
+impl Clone for BinaryDecisionTree {
+    fn clone(&self) -> Self {
+        let root = self.root.borrow().clone();
+        Self {
+            root: Rc::new(RefCell::new(root)),
+        }
+    }
+}
 
 #[derive(Debug, Getters)]
 pub struct BinaryNode {
@@ -246,6 +254,14 @@ impl BinaryNode {
         classified_examples
     }
 }
+impl Clone for BinaryNode {
+    fn clone(&self) -> Self {
+        Self {
+            example_batch: self.example_batch.clone(),
+            children: self.children.clone(),
+        }
+    }
+}
 
 #[derive(Debug, CopyGetters)]
 pub struct BinaryNodeChildren {
@@ -292,6 +308,18 @@ impl BinaryNodeChildren {
             false => self.right.borrow(),
         }
         .predict(features)
+    }
+}
+impl Clone for BinaryNodeChildren {
+    fn clone(&self) -> Self {
+        let left = self.left.borrow().clone();
+        let right = self.right.borrow().clone();
+        Self {
+            cond_feature: self.cond_feature,
+            cond_threshold: self.cond_threshold,
+            left: Rc::new(RefCell::new(left)),
+            right: Rc::new(RefCell::new(right)),
+        }
     }
 }
 
