@@ -185,6 +185,39 @@ export function perceptron_learn_multiclass(examples, _class, param, learning_ra
 * @param {string} examples
 * @param {LinearTwoFeatureParam} param
 * @param {number} learning_rate
+* @param {number} regularization_parameter
+* @returns {LinearTwoFeatureParam | undefined}
+*/
+export function logistic_regression_learn_binary_class(examples, param, learning_rate, regularization_parameter) {
+    const ptr0 = passStringToWasm0(examples, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const len0 = WASM_VECTOR_LEN;
+    _assertClass(param, LinearTwoFeatureParam);
+    var ptr1 = param.__destroy_into_raw();
+    const ret = wasm.logistic_regression_learn_binary_class(ptr0, len0, ptr1, learning_rate, regularization_parameter);
+    return ret === 0 ? undefined : LinearTwoFeatureParam.__wrap(ret);
+}
+
+/**
+* @param {string} examples
+* @param {number} _class
+* @param {LinearTwoFeatureParam} param
+* @param {number} learning_rate
+* @param {number} regularization_parameter
+* @returns {LinearTwoFeatureParam | undefined}
+*/
+export function logistic_regression_learn_multiclass(examples, _class, param, learning_rate, regularization_parameter) {
+    const ptr0 = passStringToWasm0(examples, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const len0 = WASM_VECTOR_LEN;
+    _assertClass(param, LinearTwoFeatureParam);
+    var ptr1 = param.__destroy_into_raw();
+    const ret = wasm.logistic_regression_learn_multiclass(ptr0, len0, _class, ptr1, learning_rate, regularization_parameter);
+    return ret === 0 ? undefined : LinearTwoFeatureParam.__wrap(ret);
+}
+
+/**
+* @param {string} examples
+* @param {LinearTwoFeatureParam} param
+* @param {number} learning_rate
 * @returns {LinearTwoFeatureParam | undefined}
 */
 export function adaline_learn_binary_class(examples, param, learning_rate) {
@@ -255,39 +288,6 @@ export function draw_examples_three_classes(examples, pixels) {
     const len0 = WASM_VECTOR_LEN;
     _assertClass(pixels, Pixels2DWrapper);
     wasm.draw_examples_three_classes(ptr0, len0, pixels.__wbg_ptr);
-}
-
-/**
-* @param {string} examples
-* @param {LinearTwoFeatureParam} param
-* @param {number} learning_rate
-* @param {number} regularization_parameter
-* @returns {LinearTwoFeatureParam | undefined}
-*/
-export function logistic_regression_learn_binary_class(examples, param, learning_rate, regularization_parameter) {
-    const ptr0 = passStringToWasm0(examples, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-    const len0 = WASM_VECTOR_LEN;
-    _assertClass(param, LinearTwoFeatureParam);
-    var ptr1 = param.__destroy_into_raw();
-    const ret = wasm.logistic_regression_learn_binary_class(ptr0, len0, ptr1, learning_rate, regularization_parameter);
-    return ret === 0 ? undefined : LinearTwoFeatureParam.__wrap(ret);
-}
-
-/**
-* @param {string} examples
-* @param {number} _class
-* @param {LinearTwoFeatureParam} param
-* @param {number} learning_rate
-* @param {number} regularization_parameter
-* @returns {LinearTwoFeatureParam | undefined}
-*/
-export function logistic_regression_learn_multiclass(examples, _class, param, learning_rate, regularization_parameter) {
-    const ptr0 = passStringToWasm0(examples, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-    const len0 = WASM_VECTOR_LEN;
-    _assertClass(param, LinearTwoFeatureParam);
-    var ptr1 = param.__destroy_into_raw();
-    const ret = wasm.logistic_regression_learn_multiclass(ptr0, len0, _class, ptr1, learning_rate, regularization_parameter);
-    return ret === 0 ? undefined : LinearTwoFeatureParam.__wrap(ret);
 }
 
 function handleError(f, args) {
@@ -510,13 +510,17 @@ export class WasmBinaryDecisionTree {
     }
     /**
     * @param {string} examples
-    * @param {Pixels2DWrapper} canvas
+    * @param {number} x_axis_start
+    * @param {number} x_axis_end
+    * @param {number} y_axis_start
+    * @param {number} y_axis_end
+    * @param {Pixels2DWrapper} pixels
     */
-    draw(examples, canvas) {
+    draw(examples, x_axis_start, x_axis_end, y_axis_start, y_axis_end, pixels) {
         const ptr0 = passStringToWasm0(examples, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
         const len0 = WASM_VECTOR_LEN;
-        _assertClass(canvas, Pixels2DWrapper);
-        wasm.wasmbinarydecisiontree_draw(this.__wbg_ptr, ptr0, len0, canvas.__wbg_ptr);
+        _assertClass(pixels, Pixels2DWrapper);
+        wasm.wasmbinarydecisiontree_draw(this.__wbg_ptr, ptr0, len0, x_axis_start, x_axis_end, y_axis_start, y_axis_end, pixels.__wbg_ptr);
     }
 }
 /**

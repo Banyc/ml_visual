@@ -1,5 +1,7 @@
 use std::sync::Arc;
 
+use math::graphics::brew_colors;
+use olive_rs::{Pixel, RealPoint, RealSpace, BLACK};
 use wasm_bindgen::prelude::*;
 
 use crate::{
@@ -50,9 +52,46 @@ impl WasmBinaryDecisionTree {
         Some(display.to_string())
     }
 
-    pub fn draw(&self, examples: &str, canvas: &mut Pixels2DWrapper) {
-        let examples = parse_examples(examples);
-        todo!()
+    pub fn draw(
+        &self,
+        examples: &str,
+        x_axis_start: f64,
+        x_axis_end: f64,
+        y_axis_start: f64,
+        y_axis_end: f64,
+        pixels: &mut Pixels2DWrapper,
+    ) {
+        pixels.canvas().fill(BLACK);
+        let Some(batch) = parse_examples(examples) else {
+            return;
+        };
+        if batch.features() != 2 {
+            return;
+        }
+
+        let colors = brew_colors(batch.classes());
+
+        // Draw decision boundaries
+        let real_space = RealSpace::new(x_axis_start..=x_axis_end, y_axis_start..=y_axis_end);
+        pixels.canvas().fill_by_function(&real_space, |p| {
+            let y_hat = self.tree.predict(&[p.x(), p.y()]);
+            let (r, g, b) = colors[y_hat];
+            fn dim(primary: u8) -> u8 {
+                let primary = primary as f64 * 100.0 / u8::MAX as f64;
+                primary as u8
+            }
+            Some(Pixel::new(dim(r), dim(g), dim(b), u8::MAX))
+        });
+
+        // Draw examples
+        for example in batch.examples().iter() {
+            let c = RealPoint::new(example.feature_value(0), example.feature_value(1));
+            const R: f64 = 0.05;
+            let y_hat = self.tree.predict(&[c.x(), c.y()]);
+            let (r, g, b) = colors[y_hat];
+            let color = Pixel::new(r, g, b, u8::MAX);
+            pixels.canvas().fill_real_circle(&real_space, c, R, color);
+        }
     }
 }
 

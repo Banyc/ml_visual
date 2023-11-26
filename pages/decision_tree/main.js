@@ -32,20 +32,49 @@ async function setup() {
     let viz_instance = new viz.default({ worker: viz_worker })
 
     let builder = new lib.WasmBinaryDecisionTreeBuilder()
+    let pixels_wrapper = new lib.Pixels2DWrapper(128, 128)
 
-    let examples = document.getElementById("decision_tree.examples").value
+    const examples = document.getElementById("decision_tree.examples").value
     let tree = builder.build(examples)
 
-    let render_dot_on_event = function (ev) {
-        let examples = document.getElementById("decision_tree.examples").value
+    let draw_on_event = function (ev) {
+        const examples = document.getElementById("decision_tree.examples").value
         tree = builder.build(examples)
+
+        draw_canvas(pixels_wrapper, tree)
         render_dot(viz_instance, tree)
     }
-    document.getElementById("decision_tree.examples").addEventListener("input", render_dot_on_event)
-    document.getElementById("decision_tree.features").addEventListener("input", render_dot_on_event)
+    document.getElementById("decision_tree.examples").addEventListener("input", draw_on_event)
+    document.getElementById("decision_tree.features").addEventListener("input", draw_on_event)
+    
+    let draw_canvas_on_event = function (ev) {
+        draw_canvas(pixels_wrapper, tree)
+    }
+    document.getElementById("decision_tree.two_features.x_axis_start").addEventListener("input", draw_canvas_on_event)
+    document.getElementById("decision_tree.two_features.x_axis_end").addEventListener("input", draw_canvas_on_event)
+    document.getElementById("decision_tree.two_features.y_axis_start").addEventListener("input", draw_canvas_on_event)
+    document.getElementById("decision_tree.two_features.y_axis_end").addEventListener("input", draw_canvas_on_event)
 
+    draw_canvas(pixels_wrapper, tree)
     await render_dot(viz_instance, tree)
 }
+
+function draw_canvas(pixels_wrapper, tree) {
+    const x_axis_start = parseFloat(document.getElementById("decision_tree.two_features.x_axis_start").value)
+    const x_axis_end = parseFloat(document.getElementById("decision_tree.two_features.x_axis_end").value)
+    const y_axis_start = parseFloat(document.getElementById("decision_tree.two_features.y_axis_start").value)
+    const y_axis_end = parseFloat(document.getElementById("decision_tree.two_features.y_axis_end").value)
+    const examples = document.getElementById("decision_tree.examples").value
+
+    tree.draw(examples, x_axis_start, x_axis_end, y_axis_start, y_axis_end, pixels_wrapper)
+
+    let canvas_perceptron = document.getElementById("decision_tree.two_features.canvas")
+    let ctx = canvas_perceptron.getContext("2d")
+    let palette = ctx.getImageData(0, 0, pixels_wrapper.width(), pixels_wrapper.height())
+    palette.data.set(new Uint8ClampedArray(pixels_wrapper.pixels().buffer))
+    ctx.putImageData(palette, 0, 0)
+}
+
 
 async function main() {
     await init()
