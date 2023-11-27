@@ -104,16 +104,11 @@ pub fn parse_examples(examples: &str) -> Option<ExampleBatch> {
         return None;
     };
     let examples: Option<Vec<Vec<f64>>> = serde_json::from_value(examples).ok();
-    let Some(examples) = examples else {
+    let Some(mut example_vectors) = examples else {
         return None;
     };
-    struct DatasetMeta {
-        num_features: usize,
-        max_label: usize,
-    }
-    let mut dataset = Vec::with_capacity(examples.len());
-    let mut dataset_meta = None::<DatasetMeta>;
-    for example in &examples {
+    let mut examples = vec![];
+    while let Some(example) = example_vectors.pop() {
         let Some(label) = example.last() else {
             return None;
         };
@@ -122,29 +117,11 @@ pub fn parse_examples(examples: &str) -> Option<ExampleBatch> {
             return None;
         }
         let features = &example[..example.len() - 1];
-        if let Some(dataset) = &mut dataset_meta {
-            if features.len() != dataset.num_features {
-                return None;
-            }
-            dataset.max_label = dataset.max_label.max(label);
-        } else {
-            dataset_meta = Some(DatasetMeta {
-                num_features: features.len(),
-                max_label: label,
-            })
-        }
         let example = Example::new(features.into(), label);
-        dataset.push(Arc::new(example));
+        examples.push(Arc::new(example));
     }
 
-    let Some(dataset_meta) = dataset_meta else {
-        return None;
-    };
-    ExampleBatch::new(
-        dataset.into(),
-        dataset_meta.num_features,
-        dataset_meta.max_label + 1,
-    )
+    ExampleBatch::from_examples(examples.into())
 }
 
 fn parse_feature_names(feature_names: &str) -> Option<Vec<String>> {

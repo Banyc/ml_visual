@@ -63,6 +63,32 @@ impl ExampleBatch {
         })
     }
 
+    pub fn from_examples(examples: Arc<[Arc<Example>]>) -> Option<Self> {
+        struct Meta {
+            num_features: usize,
+            max_label: usize,
+        }
+        let mut meta = None::<Meta>;
+
+        for example in examples.iter() {
+            if let Some(meta) = &mut meta {
+                if example.features().len() != meta.num_features {
+                    return None;
+                }
+                meta.max_label = meta.max_label.max(example.true_label());
+            } else {
+                meta = Some(Meta {
+                    num_features: example.features().len(),
+                    max_label: example.true_label(),
+                })
+            }
+        }
+        let Some(meta) = meta else {
+            return None;
+        };
+        ExampleBatch::new(examples, meta.num_features, meta.max_label + 1)
+    }
+
     #[must_use]
     pub fn len(&self) -> usize {
         self.examples.len()
@@ -193,8 +219,10 @@ impl fmt::Display for BinaryDecisionTreeDisplayDot<'_> {
                 let left_id = write_pre_order(f, &children.left(), new_node_id, features, colors)?;
                 let right_id =
                     write_pre_order(f, &children.right(), new_node_id, features, colors)?;
-                let left_edge = format!("{id} -> {left_id}");
-                let right_edge = format!("{id} -> {right_id}");
+                // If `ordering="out"`, then the outedges of a node, that is, edges with the node as its tail node, must appear left-to-right in the same order in which they are defined in the input.
+                // - Ref: <https://graphviz.org/docs/attrs/ordering/>
+                let left_edge = format!("{id} -> {left_id} [ordering=\"out\"]");
+                let right_edge = format!("{id} -> {right_id} [ordering=\"out\"]");
                 writeln!(f, "{left_edge}")?;
                 writeln!(f, "{right_edge}")?;
             }
