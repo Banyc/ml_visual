@@ -98,6 +98,22 @@ impl ExampleBatch {
     pub fn is_empty(&self) -> bool {
         self.len() == 0
     }
+
+    pub fn choose_multiple_with_replacement(
+        &self,
+        amount: usize,
+        rng: &mut impl Rng,
+    ) -> Option<Self> {
+        if self.examples.is_empty() {
+            return None;
+        }
+
+        let drawn = (0..amount)
+            .map(|_| self.examples.choose(rng).unwrap())
+            .map(Arc::clone)
+            .collect();
+        Some(Self::new(drawn, self.features, self.classes).unwrap())
+    }
 }
 
 #[derive(Debug)]
