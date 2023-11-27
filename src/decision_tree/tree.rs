@@ -152,6 +152,9 @@ pub struct BinaryDecisionTreeDisplayDot<'caller> {
     feature_names: &'caller [String],
 }
 impl<'caller> BinaryDecisionTreeDisplayDot<'caller> {
+    /// # Panic
+    ///
+    /// If the number of feature names is not equal to the training features
     pub fn new(tree: &'caller BinaryDecisionTree, feature_names: &'caller [String]) -> Self {
         assert_eq!(tree.root().example_batch().features(), feature_names.len());
         Self {
@@ -254,6 +257,9 @@ pub struct BinaryNode {
     children: Option<BinaryNodeChildren>,
 }
 impl BinaryNode {
+    /// # Option
+    ///
+    /// Return `None` if the examples are empty
     pub fn new(example_batch: ExampleBatch) -> Option<Self> {
         if example_batch.is_empty() {
             return None;
@@ -332,6 +338,9 @@ impl BinaryNode {
         impurity_from_classified_examples(self.classified_examples().into_iter())
     }
 
+    /// # Panic
+    ///
+    /// If the feature does not exists
     pub fn split(&self, feature: usize, threshold: f64) -> Option<BinaryNodeChildren> {
         assert!(feature < self.example_batch.features());
         let (left, right) = self.example_batch.examples().iter().fold(
@@ -372,7 +381,11 @@ impl BinaryNode {
         self.children.as_ref()
     }
 
+    /// # Panic
+    ///
+    /// If the number of features is not equal to the training features
     pub fn predict(&self, features: &[f64]) -> usize {
+        assert_eq!(features.len(), self.example_batch.features());
         if let Some(children) = &self.children {
             return children.predict(features);
         }

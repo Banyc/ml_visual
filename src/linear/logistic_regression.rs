@@ -1,4 +1,4 @@
-use math::ml::sigmoid;
+use math::{ml::sigmoid, prob::Probability};
 use wasm_bindgen::prelude::*;
 
 use super::{
@@ -55,7 +55,7 @@ fn learn(
         let activation = decision_function(net_input);
 
         // `example.y()`: the example label
-        let diff = f64::from(example.y() == class) - activation;
+        let diff = f64::from(example.y() == class) - activation.get();
         (example, diff)
     });
     let sum_differences: f64 = example_and_diff.clone().map(|(_, diff)| diff).sum();
@@ -86,6 +86,6 @@ fn learn(
     )
 }
 
-pub fn decision_function(net_input: f64) -> f64 {
+pub fn decision_function(net_input: f64) -> Probability {
     sigmoid(net_input)
 }

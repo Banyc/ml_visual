@@ -62,17 +62,11 @@ impl WasmBinaryDecisionTree {
         pixels: &mut Pixels2DWrapper,
     ) {
         pixels.canvas().fill(BLACK);
-        let Some(batch) = parse_examples(examples) else {
-            return;
-        };
-        if batch.features() != 2 {
-            return;
-        }
 
-        let colors = brew_colors(batch.classes());
+        let colors = brew_colors(self.tree.root().example_batch().classes());
+        let real_space = RealSpace::new(x_axis_start..=x_axis_end, y_axis_start..=y_axis_end);
 
         // Draw decision boundaries
-        let real_space = RealSpace::new(x_axis_start..=x_axis_end, y_axis_start..=y_axis_end);
         pixels.canvas().fill_by_function(&real_space, |p| {
             let y_hat = self.tree.predict(&[p.x(), p.y()]);
             let (r, g, b) = colors[y_hat];
@@ -84,6 +78,12 @@ impl WasmBinaryDecisionTree {
         });
 
         // Draw examples
+        let Some(batch) = parse_examples(examples) else {
+            return;
+        };
+        if batch.features() < 2 {
+            return;
+        }
         for example in batch.examples().iter() {
             let c = RealPoint::new(example.feature_value(0), example.feature_value(1));
             const R: f64 = 0.05;
