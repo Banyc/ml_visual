@@ -36,7 +36,8 @@ impl WasmBinaryDecisionTree {
         let Some(batch) = parse_examples(examples) else {
             return None;
         };
-        let Some(mut tree) = BinaryDecisionTree::new(batch) else {
+        let training_features = batch.features();
+        let Some(mut tree) = BinaryDecisionTree::new(batch, training_features) else {
             return None;
         };
         tree.learn();

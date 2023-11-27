@@ -103,14 +103,21 @@ impl ExampleBatch {
 #[derive(Debug)]
 pub struct BinaryDecisionTree {
     root: Rc<RefCell<BinaryNode>>,
+    training_features: usize,
 }
 impl BinaryDecisionTree {
-    pub fn new(example_batch: ExampleBatch) -> Option<Self> {
+    pub fn new(example_batch: ExampleBatch, training_features: usize) -> Option<Self> {
+        if example_batch.features() < training_features {
+            return None;
+        }
         let Some(root) = BinaryNode::new(example_batch) else {
             return None;
         };
         let root = Rc::new(RefCell::new(root));
-        Some(Self { root })
+        Some(Self {
+            root,
+            training_features,
+        })
     }
 
     /// - Ref: <https://github.com/scikit-learn/scikit-learn/blob/0816e0012ce6446f28ffbb5430e4afad2fa44125/sklearn/tree/_tree.pyx#L166>
@@ -119,7 +126,7 @@ impl BinaryDecisionTree {
         breath_first_queue.push_back(Rc::clone(&self.root));
         while let Some(ptr) = breath_first_queue.pop_front() {
             let mut node = ptr.as_ref().borrow_mut();
-            node.split_best();
+            node.split_best(self.training_features);
             // Breath-first-search the other nodes
             if let Some(children) = node.children() {
                 breath_first_queue.push_back(Rc::clone(children.left_ptr()));
@@ -141,6 +148,7 @@ impl Clone for BinaryDecisionTree {
         let root = self.root.borrow().clone();
         Self {
             root: Rc::new(RefCell::new(root)),
+            training_features: self.training_features,
         }
     }
 }
@@ -271,7 +279,7 @@ impl BinaryNode {
     }
 
     /// - Ref: <https://github.com/scikit-learn/scikit-learn/blob/c08afded996d08a7dde8441708ed9ca4cbb40559/sklearn/tree/_splitter.pyx#L289>
-    pub fn split_best(&mut self) {
+    pub fn split_best(&mut self, training_features: usize) {
         #[derive(Debug)]
         struct Best {
             ig: f64,
@@ -286,10 +294,10 @@ impl BinaryNode {
         }
         // Shuffle features
         let mut features: Vec<_> = (0..self.example_batch.features()).collect();
-        features.shuffle(&mut rand::thread_rng());
+        let (features, _) = features.partial_shuffle(&mut rand::thread_rng(), training_features);
+        // For each feature from a part of the features
         let mut best = None::<Best>;
-        // For each feature
-        while let Some(feature) = features.pop() {
+        for feature in features.iter().copied() {
             // Sort the feature values
             let mut examples: Vec<_> = self.example_batch.examples().iter().collect();
             examples.sort_unstable_by(|a, b| {
@@ -545,12 +553,20 @@ pub fn gini_impurity(prob_classified: impl Iterator<Item = Probability>) -> Opti
         .weighted_sum()
 }
 
-/// Fisher-Yates-based algorithm
-pub fn shuffle<T>(a: &mut [T]) {
-    let mut rng = rand::thread_rng();
-    for i in (0..a.len()).rev() {
-        let j = rng.gen_range(0..=i);
-        a.swap(i, j);
+pub trait ShuffleLastNExt {
+    fn shuffle_last_n(&mut self, last_n: usize);
+}
+impl<T> ShuffleLastNExt for [T] {
+    /// Shuffle only into the `last_n` elements
+    ///
+    /// Fisher-Yates-based algorithm
+    fn shuffle_last_n(&mut self, last_n: usize) {
+        assert!(self.len() >= last_n);
+        let mut rng = rand::thread_rng();
+        for i in (0..self.len()).rev().take(last_n) {
+            let j = rng.gen_range(0..=i);
+            self.swap(i, j);
+        }
     }
 }
 
@@ -635,7 +651,7 @@ mod tests {
             .map(Arc::new)
             .collect();
         let batch = ExampleBatch::new(examples, 2, 3).unwrap();
-        let mut tree = BinaryDecisionTree::new(batch).unwrap();
+        let mut tree = BinaryDecisionTree::new(batch, 2).unwrap();
         tree.learn();
         dbg!(&tree);
         assert_eq!(tree.predict(&[0.0, 0.0]), 0);
