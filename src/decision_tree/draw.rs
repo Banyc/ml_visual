@@ -6,10 +6,11 @@ use wasm_bindgen::prelude::*;
 
 use crate::{
     canvas::Pixels2DWrapper,
-    decision_tree::tree::{BinaryDecisionTreeDisplayDot, Example},
+    decision_tree::tree::BinaryDecisionTreeDisplayDot,
+    example::{Example, ExampleBatch},
 };
 
-use super::tree::{BinaryDecisionTree, ExampleBatch};
+use super::tree::BinaryDecisionTree;
 
 #[wasm_bindgen]
 pub struct WasmBinaryDecisionTreeBuilder;

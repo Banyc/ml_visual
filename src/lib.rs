@@ -3,6 +3,7 @@ use std::io::Write;
 #[allow(dead_code)]
 mod canvas;
 pub mod decision_tree;
+pub mod example;
 pub mod linear;
 
 const WASM_MEMORY_BUFFER_SIZE: usize = 1 << 10;
