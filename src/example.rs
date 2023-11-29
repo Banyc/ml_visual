@@ -49,6 +49,26 @@ impl ExampleBatch {
         })
     }
 
+    pub fn classified_examples(&self) -> Vec<usize> {
+        let mut classified_examples = vec![0; self.classes()];
+        self.examples().iter().for_each(|example| {
+            classified_examples[example.true_label()] += 1;
+        });
+        classified_examples
+    }
+
+    pub fn major_class(&self) -> Option<usize> {
+        let Some((i, _)) = self
+            .classified_examples()
+            .into_iter()
+            .enumerate()
+            .max_by_key(|(_, amount)| *amount)
+        else {
+            return None;
+        };
+        Some(i)
+    }
+
     pub fn from_examples(examples: Arc<[Arc<Example>]>) -> Option<Self> {
         struct Meta {
             num_features: usize,

@@ -111,7 +111,7 @@ impl fmt::Display for BinaryDecisionTreeDisplayDot<'_> {
                 .map(|c| (&features[c.cond_feature()].name, c.cond_threshold));
             let impurity = node.impurity();
             let examples = node.example_batch().examples().len();
-            let values = node.classified_examples();
+            let values = node.example_batch().classified_examples();
 
             let mut label = String::new();
             if let Some((feature_name, threshold)) = children {
@@ -256,7 +256,7 @@ impl BinaryNode {
     }
 
     pub fn impurity(&self) -> f64 {
-        impurity_from_classified_examples(self.classified_examples().into_iter())
+        impurity_from_classified_examples(self.example_batch.classified_examples().into_iter())
     }
 
     /// # Panic
@@ -312,20 +312,13 @@ impl BinaryNode {
         }
 
         let (i, _) = self
+            .example_batch
             .classified_examples()
             .into_iter()
             .enumerate()
             .max_by_key(|(_i, n)| *n)
             .unwrap();
         i
-    }
-
-    fn classified_examples(&self) -> Vec<usize> {
-        let mut classified_examples = vec![0; self.example_batch.classes()];
-        self.example_batch.examples().iter().for_each(|example| {
-            classified_examples[example.true_label()] += 1;
-        });
-        classified_examples
     }
 }
 impl Clone for BinaryNode {
