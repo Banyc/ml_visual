@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{num::NonZeroUsize, sync::Arc};
 
 use math::graphics::brew_colors;
 use olive_rs::{Pixel, RealPoint, RealSpace, BLACK};
@@ -54,6 +54,10 @@ impl WasmKnn {
         k: usize,
     ) {
         pixels.canvas().fill(BLACK);
+
+        let Some(k) = NonZeroUsize::new(k) else {
+            return;
+        };
 
         let colors = brew_colors(self.knn.example_batch().classes());
         let real_space = RealSpace::new(x_axis_start..=x_axis_end, y_axis_start..=y_axis_end);

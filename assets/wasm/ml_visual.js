@@ -118,6 +118,37 @@ function _assertClass(instance, klass) {
     return instance.ptr;
 }
 /**
+* @param {string} examples
+* @param {LinearTwoFeatureParam} param
+* @param {number} learning_rate
+* @returns {LinearTwoFeatureParam | undefined}
+*/
+export function adaline_learn_binary_class(examples, param, learning_rate) {
+    const ptr0 = passStringToWasm0(examples, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const len0 = WASM_VECTOR_LEN;
+    _assertClass(param, LinearTwoFeatureParam);
+    var ptr1 = param.__destroy_into_raw();
+    const ret = wasm.adaline_learn_binary_class(ptr0, len0, ptr1, learning_rate);
+    return ret === 0 ? undefined : LinearTwoFeatureParam.__wrap(ret);
+}
+
+/**
+* @param {string} examples
+* @param {number} _class
+* @param {LinearTwoFeatureParam} param
+* @param {number} learning_rate
+* @returns {LinearTwoFeatureParam | undefined}
+*/
+export function adaline_learn_multiclass(examples, _class, param, learning_rate) {
+    const ptr0 = passStringToWasm0(examples, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const len0 = WASM_VECTOR_LEN;
+    _assertClass(param, LinearTwoFeatureParam);
+    var ptr1 = param.__destroy_into_raw();
+    const ret = wasm.adaline_learn_multiclass(ptr0, len0, _class, ptr1, learning_rate);
+    return ret === 0 ? undefined : LinearTwoFeatureParam.__wrap(ret);
+}
+
+/**
 * @param {LinearTwoFeatureParam} param
 * @param {Pixels2DWrapper} pixels
 */
@@ -256,37 +287,6 @@ export function perceptron_learn_multiclass(examples, _class, param, learning_ra
     _assertClass(param, LinearTwoFeatureParam);
     var ptr1 = param.__destroy_into_raw();
     const ret = wasm.perceptron_learn_multiclass(ptr0, len0, _class, ptr1, learning_rate);
-    return ret === 0 ? undefined : LinearTwoFeatureParam.__wrap(ret);
-}
-
-/**
-* @param {string} examples
-* @param {LinearTwoFeatureParam} param
-* @param {number} learning_rate
-* @returns {LinearTwoFeatureParam | undefined}
-*/
-export function adaline_learn_binary_class(examples, param, learning_rate) {
-    const ptr0 = passStringToWasm0(examples, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-    const len0 = WASM_VECTOR_LEN;
-    _assertClass(param, LinearTwoFeatureParam);
-    var ptr1 = param.__destroy_into_raw();
-    const ret = wasm.adaline_learn_binary_class(ptr0, len0, ptr1, learning_rate);
-    return ret === 0 ? undefined : LinearTwoFeatureParam.__wrap(ret);
-}
-
-/**
-* @param {string} examples
-* @param {number} _class
-* @param {LinearTwoFeatureParam} param
-* @param {number} learning_rate
-* @returns {LinearTwoFeatureParam | undefined}
-*/
-export function adaline_learn_multiclass(examples, _class, param, learning_rate) {
-    const ptr0 = passStringToWasm0(examples, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-    const len0 = WASM_VECTOR_LEN;
-    _assertClass(param, LinearTwoFeatureParam);
-    var ptr1 = param.__destroy_into_raw();
-    const ret = wasm.adaline_learn_multiclass(ptr0, len0, _class, ptr1, learning_rate);
     return ret === 0 ? undefined : LinearTwoFeatureParam.__wrap(ret);
 }
 

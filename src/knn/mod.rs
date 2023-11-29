@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{num::NonZeroUsize, sync::Arc};
 
 use getset::Getters;
 
@@ -19,7 +19,7 @@ impl Knn {
         Some(Self { example_batch })
     }
 
-    pub fn predict(&self, features: &[f64], k: usize) -> usize {
+    pub fn predict(&self, features: &[f64], k: NonZeroUsize) -> usize {
         struct Neighbor<'caller> {
             distance: f64,
             example: &'caller Arc<Example>,
@@ -46,17 +46,33 @@ impl Knn {
             })
             .collect();
         neighbors.sort_unstable_by(|a, b| a.distance.partial_cmp(&b.distance).unwrap());
-        let k_neighbors: Vec<_> = neighbors
-            .iter()
-            .take(k)
-            .map(|neighbor| Arc::clone(neighbor.example))
-            .collect();
-        let k_neighbors = ExampleBatch::new(
-            k_neighbors.into(),
-            self.example_batch.features(),
-            self.example_batch.classes(),
-        )
-        .unwrap();
-        k_neighbors.major_class().unwrap()
+        let k_neighbors = neighbors.iter().take(k.get());
+
+        let mut distances = vec![0.0; self.example_batch.classes()];
+        let mut counts = vec![0; self.example_batch.classes()];
+        for neighbor in k_neighbors {
+            let class = neighbor.example.true_label();
+            counts[class] += 1;
+            distances[class] += neighbor.distance;
+        }
+
+        let mut max_count = (0, vec![]);
+        for (i, count) in counts.into_iter().enumerate() {
+            match max_count.0.cmp(&count) {
+                std::cmp::Ordering::Less => max_count = (count, vec![i]),
+                std::cmp::Ordering::Equal => max_count.1.push(i),
+                std::cmp::Ordering::Greater => (),
+            }
+        }
+
+        // Resolve ties
+        let first_class = max_count.1[0];
+        let mut min_distance = (distances[first_class], Some(first_class));
+        for i in max_count.1 {
+            if distances[i] < min_distance.0 {
+                min_distance = (distances[i], Some(i));
+            }
+        }
+        min_distance.1.unwrap()
     }
 }
