@@ -119,10 +119,10 @@ impl ExampleBatch {
 #[derive(Debug)]
 pub struct BinaryDecisionTree {
     root: Rc<RefCell<BinaryNode>>,
-    training_features: usize,
 }
 impl BinaryDecisionTree {
-    pub fn new(example_batch: ExampleBatch, training_features: usize) -> Option<Self> {
+    /// - Ref: <https://github.com/scikit-learn/scikit-learn/blob/0816e0012ce6446f28ffbb5430e4afad2fa44125/sklearn/tree/_tree.pyx#L166>
+    pub fn fit(example_batch: ExampleBatch, training_features: usize) -> Option<Self> {
         if example_batch.features() < training_features {
             return None;
         }
@@ -130,25 +130,20 @@ impl BinaryDecisionTree {
             return None;
         };
         let root = Rc::new(RefCell::new(root));
-        Some(Self {
-            root,
-            training_features,
-        })
-    }
 
-    /// - Ref: <https://github.com/scikit-learn/scikit-learn/blob/0816e0012ce6446f28ffbb5430e4afad2fa44125/sklearn/tree/_tree.pyx#L166>
-    pub fn learn(&mut self) {
         let mut breath_first_queue = VecDeque::new();
-        breath_first_queue.push_back(Rc::clone(&self.root));
+        breath_first_queue.push_back(Rc::clone(&root));
         while let Some(ptr) = breath_first_queue.pop_front() {
             let mut node = ptr.as_ref().borrow_mut();
-            node.split_best(self.training_features);
+            node.split_best(training_features);
             // Breath-first-search the other nodes
             if let Some(children) = node.children() {
                 breath_first_queue.push_back(Rc::clone(children.left_ptr()));
                 breath_first_queue.push_back(Rc::clone(children.right_ptr()));
             }
         }
+
+        Some(Self { root })
     }
 
     pub fn predict(&self, features: &[f64]) -> usize {
@@ -164,7 +159,6 @@ impl Clone for BinaryDecisionTree {
         let root = self.root.borrow().clone();
         Self {
             root: Rc::new(RefCell::new(root)),
-            training_features: self.training_features,
         }
     }
 }
@@ -667,8 +661,7 @@ mod tests {
             .map(Arc::new)
             .collect();
         let batch = ExampleBatch::new(examples, 2, 3).unwrap();
-        let mut tree = BinaryDecisionTree::new(batch, 2).unwrap();
-        tree.learn();
+        let tree = BinaryDecisionTree::fit(batch, 2).unwrap();
         dbg!(&tree);
         assert_eq!(tree.predict(&[0.0, 0.0]), 0);
         assert_eq!(tree.predict(&[1.0, 0.0]), 1);
