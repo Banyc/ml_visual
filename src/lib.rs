@@ -4,6 +4,7 @@ use std::io::Write;
 mod canvas;
 pub mod decision_tree;
 pub mod example;
+pub mod knn;
 pub mod linear;
 
 const WASM_MEMORY_BUFFER_SIZE: usize = 1 << 10;
