@@ -1,8 +1,14 @@
 use std::sync::Arc;
 
+use getset::Getters;
+
 use crate::example::{Example, ExampleBatch};
 
+pub mod draw;
+
+#[derive(Debug, Getters)]
 pub struct Knn {
+    #[getset(get = "pub")]
     example_batch: ExampleBatch,
 }
 impl Knn {

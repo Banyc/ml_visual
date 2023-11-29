@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script type="module" src="main.js"></script>
+  </head>
+  <body>
+    <div>
+      <h1>\(k\)-nearest neighbors (KNN)</h1>
+      <div>
+        <h2>\(k\)-nearest neighbors (KNN)</h2>
+        <div style="display: flex;">
+          <div>
+            <canvas id="knn.two_features.canvas" width="128" height="128"></canvas>
+          </div>
+          <ul>
+            <li>X-axis: \(x_1\), start: <input id="knn.two_features.x_axis_start" type="text" value="-1" />, end: <input id="knn.two_features.x_axis_end" type="text" value="2" /></li>
+            <li>Y-axis: \(x_2\), start: <input id="knn.two_features.y_axis_start" type="text" value="-1" />, end: <input id="knn.two_features.y_axis_end" type="text" value="2" /></li>
+          </ul>
+        </div>
+        <ul>
+          <li>
+            \(k\):
+            <input id="knn.k" type="text" value="1" />
+          </li>
+          <li>
+            Examples \((x_1, x_2, ..., x_m, y)\):<br/>
+            <textarea id="knn.examples" type="text" rows="5">[[0,0,0]
+ [1,0,1]
+ [0,1,1]
+ [1,1,0]
+]</textarea>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </body>
+</html>
