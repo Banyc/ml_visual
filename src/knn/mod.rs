@@ -1,6 +1,7 @@
 use std::{num::NonZeroUsize, sync::Arc};
 
 use getset::Getters;
+use math::statistics::DistanceExt;
 
 use crate::example::{Example, ExampleBatch};
 
@@ -19,21 +20,10 @@ impl Knn {
         Some(Self { example_batch })
     }
 
-    pub fn predict(&self, features: &[f64], k: NonZeroUsize) -> usize {
+    pub fn predict(&self, features: &[f64], k: NonZeroUsize, p: NonZeroUsize) -> usize {
         struct Neighbor<'caller> {
             distance: f64,
             example: &'caller Arc<Example>,
-        }
-
-        fn distance(a: &[f64], b: &[f64]) -> f64 {
-            assert_eq!(a.len(), b.len());
-            let sum: f64 = a
-                .iter()
-                .copied()
-                .zip(b.iter().copied())
-                .map(|(a, b)| (a - b).abs())
-                .sum();
-            sum.sqrt()
         }
 
         let mut neighbors: Vec<_> = self
@@ -41,7 +31,11 @@ impl Knn {
             .examples()
             .iter()
             .map(|example| {
-                let distance = distance(features, example.features());
+                let distance = features
+                    .iter()
+                    .copied()
+                    .zip(example.features().iter().copied())
+                    .distance(p);
                 Neighbor { distance, example }
             })
             .collect();

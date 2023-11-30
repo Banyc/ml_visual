@@ -58,13 +58,14 @@ impl WasmKnn {
         let Some(k) = NonZeroUsize::new(k) else {
             return;
         };
+        let distance_p = NonZeroUsize::new(2).unwrap();
 
         let colors = brew_colors(self.knn.example_batch().classes());
         let real_space = RealSpace::new(x_axis_start..=x_axis_end, y_axis_start..=y_axis_end);
 
         // Draw decision boundaries
         pixels.canvas().fill_by_function(&real_space, |p| {
-            let y_hat = self.knn.predict(&[p.x(), p.y()], k);
+            let y_hat = self.knn.predict(&[p.x(), p.y()], k, distance_p);
             let (r, g, b) = colors[y_hat];
             fn dim(primary: u8) -> u8 {
                 let primary = primary as f64 * 100.0 / u8::MAX as f64;
@@ -83,7 +84,7 @@ impl WasmKnn {
         for example in batch.examples().iter() {
             let c = RealPoint::new(example.feature_value(0), example.feature_value(1));
             const R: f64 = 0.05;
-            let y_hat = self.knn.predict(&[c.x(), c.y()], k);
+            let y_hat = self.knn.predict(&[c.x(), c.y()], k, distance_p);
             let (r, g, b) = colors[y_hat];
             let color = Pixel::new(r, g, b, u8::MAX);
             pixels.canvas().fill_real_circle(&real_space, c, R, color);
