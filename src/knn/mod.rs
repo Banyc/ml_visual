@@ -1,7 +1,10 @@
 use std::{num::NonZeroUsize, sync::Arc};
 
 use getset::Getters;
-use math::statistics::DistanceExt;
+use math::{
+    statistics::DistanceExt,
+    transformer::{standard_scaler::StandardScaler, Transformer},
+};
 
 use crate::example::{Example, ExampleBatch};
 
@@ -11,16 +14,26 @@ pub mod draw;
 pub struct Knn {
     #[getset(get = "pub")]
     example_batch: ExampleBatch,
+    sc: Arc<[StandardScaler]>,
 }
 impl Knn {
     pub fn fit(example_batch: ExampleBatch) -> Option<Self> {
         if example_batch.examples().is_empty() {
             return None;
         }
-        Some(Self { example_batch })
+        let Some(sc) = example_batch.fit().collect::<Result<Arc<[_]>, _>>().ok() else {
+            return None;
+        };
+        let example_batch = example_batch.transform_by::<StandardScaler>(sc.iter().copied());
+        Some(Self { example_batch, sc })
     }
 
     pub fn predict(&self, features: &[f64], k: NonZeroUsize, p: NonZeroUsize) -> usize {
+        let features = features
+            .iter()
+            .zip(self.sc.iter())
+            .map(|(x, sc)| sc.transform(*x));
+
         struct Neighbor<'caller> {
             distance: f64,
             example: &'caller Arc<Example>,
@@ -32,8 +45,7 @@ impl Knn {
             .iter()
             .map(|example| {
                 let distance = features
-                    .iter()
-                    .copied()
+                    .clone()
                     .zip(example.features().iter().copied())
                     .distance(p);
                 Neighbor { distance, example }

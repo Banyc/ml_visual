@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use getset::{CopyGetters, Getters};
+use math::transformer::{TransformExt, Transformer};
 use rand::{seq::SliceRandom, Rng};
 
 #[derive(Debug, Clone, Getters, CopyGetters)]
@@ -119,5 +120,53 @@ impl ExampleBatch {
             .map(Arc::clone)
             .collect();
         Some(Self::new(drawn, self.features, self.classes).unwrap())
+    }
+
+    pub fn fit<T: Transformer<Value = f64>>(&self) -> impl Iterator<Item = Result<T, T::Err>> + '_ {
+        (0..self.features).map(|j| self.examples.iter().map(|x| x.feature_value(j)).fit())
+    }
+
+    pub fn transform_by<T: Transformer<Value = f64>>(
+        &self,
+        transformers: impl Iterator<Item = T>,
+    ) -> Self {
+        let feature_vectors =
+            (0..self.features).map(|j| self.examples.iter().map(move |x| x.feature_value(j)));
+        let feature_vectors = feature_vectors
+            .zip(transformers)
+            .map(|(f, t)| f.transform_by(t));
+        let feature_zip = VecZip::new(feature_vectors.collect());
+        let label_vector = self.examples.iter().map(|x| x.true_label());
+
+        let examples = feature_zip
+            .zip(label_vector)
+            .map(|(features, label)| Example::new(features.into(), label))
+            .map(Arc::new);
+
+        Self::new(examples.collect(), self.features, self.classes).unwrap()
+    }
+
+    pub fn fit_transform<T: Transformer<Value = f64>>(&self) -> Result<Self, T::Err> {
+        let t: Vec<_> = self.fit::<T>().collect::<Result<_, _>>()?;
+        Ok(self.transform_by(t.into_iter()))
+    }
+}
+
+pub struct VecZip<I> {
+    iterators: Vec<I>,
+}
+impl<I> VecZip<I> {
+    pub fn new(iterators: Vec<I>) -> Self {
+        Self { iterators }
+    }
+}
+impl<I> Iterator for VecZip<I>
+where
+    I: Iterator,
+{
+    type Item = Vec<I::Item>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.iterators.iter_mut().map(Iterator::next).collect()
     }
 }

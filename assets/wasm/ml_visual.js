@@ -123,6 +123,37 @@ function _assertClass(instance, klass) {
 * @param {number} learning_rate
 * @returns {LinearTwoFeatureParam | undefined}
 */
+export function perceptron_learn_binary_class(examples, param, learning_rate) {
+    const ptr0 = passStringToWasm0(examples, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const len0 = WASM_VECTOR_LEN;
+    _assertClass(param, LinearTwoFeatureParam);
+    var ptr1 = param.__destroy_into_raw();
+    const ret = wasm.perceptron_learn_binary_class(ptr0, len0, ptr1, learning_rate);
+    return ret === 0 ? undefined : LinearTwoFeatureParam.__wrap(ret);
+}
+
+/**
+* @param {string} examples
+* @param {number} _class
+* @param {LinearTwoFeatureParam} param
+* @param {number} learning_rate
+* @returns {LinearTwoFeatureParam | undefined}
+*/
+export function perceptron_learn_multiclass(examples, _class, param, learning_rate) {
+    const ptr0 = passStringToWasm0(examples, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const len0 = WASM_VECTOR_LEN;
+    _assertClass(param, LinearTwoFeatureParam);
+    var ptr1 = param.__destroy_into_raw();
+    const ret = wasm.perceptron_learn_multiclass(ptr0, len0, _class, ptr1, learning_rate);
+    return ret === 0 ? undefined : LinearTwoFeatureParam.__wrap(ret);
+}
+
+/**
+* @param {string} examples
+* @param {LinearTwoFeatureParam} param
+* @param {number} learning_rate
+* @returns {LinearTwoFeatureParam | undefined}
+*/
 export function adaline_learn_binary_class(examples, param, learning_rate) {
     const ptr0 = passStringToWasm0(examples, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
     const len0 = WASM_VECTOR_LEN;
@@ -146,6 +177,39 @@ export function adaline_learn_multiclass(examples, _class, param, learning_rate)
     var ptr1 = param.__destroy_into_raw();
     const ret = wasm.adaline_learn_multiclass(ptr0, len0, _class, ptr1, learning_rate);
     return ret === 0 ? undefined : LinearTwoFeatureParam.__wrap(ret);
+}
+
+/**
+* @param {LinearTwoFeatureParam} param
+* @param {Pixels2DWrapper} pixels
+*/
+export function linear_draw_classification_binary_class(param, pixels) {
+    _assertClass(param, LinearTwoFeatureParam);
+    var ptr0 = param.__destroy_into_raw();
+    _assertClass(pixels, Pixels2DWrapper);
+    wasm.linear_draw_classification_binary_class(ptr0, pixels.__wbg_ptr);
+}
+
+/**
+* @param {LinearTwoFeatureParam} param
+* @param {Pixels2DWrapper} pixels
+*/
+export function logistic_regression_draw_classification_binary_class(param, pixels) {
+    _assertClass(param, LinearTwoFeatureParam);
+    var ptr0 = param.__destroy_into_raw();
+    _assertClass(pixels, Pixels2DWrapper);
+    wasm.logistic_regression_draw_classification_binary_class(ptr0, pixels.__wbg_ptr);
+}
+
+/**
+* @param {string} examples
+* @param {Pixels2DWrapper} pixels
+*/
+export function draw_examples_binary_class(examples, pixels) {
+    const ptr0 = passStringToWasm0(examples, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const len0 = WASM_VECTOR_LEN;
+    _assertClass(pixels, Pixels2DWrapper);
+    wasm.draw_examples_binary_class(ptr0, len0, pixels.__wbg_ptr);
 }
 
 /**
@@ -190,7 +254,7 @@ export function draw_examples_three_classes(examples, pixels) {
     const ptr0 = passStringToWasm0(examples, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
     const len0 = WASM_VECTOR_LEN;
     _assertClass(pixels, Pixels2DWrapper);
-    wasm.draw_examples_three_classes(ptr0, len0, pixels.__wbg_ptr);
+    wasm.draw_examples_binary_class(ptr0, len0, pixels.__wbg_ptr);
 }
 
 /**
@@ -224,70 +288,6 @@ export function logistic_regression_learn_multiclass(examples, _class, param, le
     var ptr1 = param.__destroy_into_raw();
     const ret = wasm.logistic_regression_learn_multiclass(ptr0, len0, _class, ptr1, learning_rate, regularization_parameter);
     return ret === 0 ? undefined : LinearTwoFeatureParam.__wrap(ret);
-}
-
-/**
-* @param {string} examples
-* @param {LinearTwoFeatureParam} param
-* @param {number} learning_rate
-* @returns {LinearTwoFeatureParam | undefined}
-*/
-export function perceptron_learn_binary_class(examples, param, learning_rate) {
-    const ptr0 = passStringToWasm0(examples, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-    const len0 = WASM_VECTOR_LEN;
-    _assertClass(param, LinearTwoFeatureParam);
-    var ptr1 = param.__destroy_into_raw();
-    const ret = wasm.perceptron_learn_binary_class(ptr0, len0, ptr1, learning_rate);
-    return ret === 0 ? undefined : LinearTwoFeatureParam.__wrap(ret);
-}
-
-/**
-* @param {string} examples
-* @param {number} _class
-* @param {LinearTwoFeatureParam} param
-* @param {number} learning_rate
-* @returns {LinearTwoFeatureParam | undefined}
-*/
-export function perceptron_learn_multiclass(examples, _class, param, learning_rate) {
-    const ptr0 = passStringToWasm0(examples, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-    const len0 = WASM_VECTOR_LEN;
-    _assertClass(param, LinearTwoFeatureParam);
-    var ptr1 = param.__destroy_into_raw();
-    const ret = wasm.perceptron_learn_multiclass(ptr0, len0, _class, ptr1, learning_rate);
-    return ret === 0 ? undefined : LinearTwoFeatureParam.__wrap(ret);
-}
-
-/**
-* @param {LinearTwoFeatureParam} param
-* @param {Pixels2DWrapper} pixels
-*/
-export function linear_draw_classification_binary_class(param, pixels) {
-    _assertClass(param, LinearTwoFeatureParam);
-    var ptr0 = param.__destroy_into_raw();
-    _assertClass(pixels, Pixels2DWrapper);
-    wasm.linear_draw_classification_binary_class(ptr0, pixels.__wbg_ptr);
-}
-
-/**
-* @param {LinearTwoFeatureParam} param
-* @param {Pixels2DWrapper} pixels
-*/
-export function logistic_regression_draw_classification_binary_class(param, pixels) {
-    _assertClass(param, LinearTwoFeatureParam);
-    var ptr0 = param.__destroy_into_raw();
-    _assertClass(pixels, Pixels2DWrapper);
-    wasm.logistic_regression_draw_classification_binary_class(ptr0, pixels.__wbg_ptr);
-}
-
-/**
-* @param {string} examples
-* @param {Pixels2DWrapper} pixels
-*/
-export function draw_examples_binary_class(examples, pixels) {
-    const ptr0 = passStringToWasm0(examples, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-    const len0 = WASM_VECTOR_LEN;
-    _assertClass(pixels, Pixels2DWrapper);
-    wasm.draw_examples_binary_class(ptr0, len0, pixels.__wbg_ptr);
 }
 
 function handleError(f, args) {
@@ -713,11 +713,11 @@ function __wbg_get_imports() {
     imports.wbg.__wbg_getRandomValues_504510b5564925af = function() { return handleError(function (arg0, arg1) {
         getObject(arg0).getRandomValues(getObject(arg1));
     }, arguments) };
-    imports.wbg.__wbg_newnoargs_ccdcae30fd002262 = function(arg0, arg1) {
+    imports.wbg.__wbg_newnoargs_c62ea9419c21fbac = function(arg0, arg1) {
         const ret = new Function(getStringFromWasm0(arg0, arg1));
         return addHeapObject(ret);
     };
-    imports.wbg.__wbg_call_669127b9d730c650 = function() { return handleError(function (arg0, arg1) {
+    imports.wbg.__wbg_call_90c26b09837aba1c = function() { return handleError(function (arg0, arg1) {
         const ret = getObject(arg0).call(getObject(arg1));
         return addHeapObject(ret);
     }, arguments) };
@@ -725,19 +725,19 @@ function __wbg_get_imports() {
         const ret = getObject(arg0);
         return addHeapObject(ret);
     };
-    imports.wbg.__wbg_self_3fad056edded10bd = function() { return handleError(function () {
+    imports.wbg.__wbg_self_f0e34d89f33b99fd = function() { return handleError(function () {
         const ret = self.self;
         return addHeapObject(ret);
     }, arguments) };
-    imports.wbg.__wbg_window_a4f46c98a61d4089 = function() { return handleError(function () {
+    imports.wbg.__wbg_window_d3b084224f4774d7 = function() { return handleError(function () {
         const ret = window.window;
         return addHeapObject(ret);
     }, arguments) };
-    imports.wbg.__wbg_globalThis_17eff828815f7d84 = function() { return handleError(function () {
+    imports.wbg.__wbg_globalThis_9caa27ff917c6860 = function() { return handleError(function () {
         const ret = globalThis.globalThis;
         return addHeapObject(ret);
     }, arguments) };
-    imports.wbg.__wbg_global_46f939f6541643c5 = function() { return handleError(function () {
+    imports.wbg.__wbg_global_35dfdd59a4da3e74 = function() { return handleError(function () {
         const ret = global.global;
         return addHeapObject(ret);
     }, arguments) };
@@ -745,38 +745,38 @@ function __wbg_get_imports() {
         const ret = getObject(arg0) === undefined;
         return ret;
     };
-    imports.wbg.__wbg_call_53fc3abd42e24ec8 = function() { return handleError(function (arg0, arg1, arg2) {
+    imports.wbg.__wbg_call_5da1969d7cd31ccd = function() { return handleError(function (arg0, arg1, arg2) {
         const ret = getObject(arg0).call(getObject(arg1), getObject(arg2));
         return addHeapObject(ret);
     }, arguments) };
-    imports.wbg.__wbg_buffer_344d9b41efe96da7 = function(arg0) {
+    imports.wbg.__wbg_buffer_a448f833075b71ba = function(arg0) {
         const ret = getObject(arg0).buffer;
         return addHeapObject(ret);
     };
-    imports.wbg.__wbg_newwithbyteoffsetandlength_2dc04d99088b15e3 = function(arg0, arg1, arg2) {
+    imports.wbg.__wbg_newwithbyteoffsetandlength_d0482f893617af71 = function(arg0, arg1, arg2) {
         const ret = new Uint8Array(getObject(arg0), arg1 >>> 0, arg2 >>> 0);
         return addHeapObject(ret);
     };
-    imports.wbg.__wbg_new_d8a000788389a31e = function(arg0) {
+    imports.wbg.__wbg_new_8f67e318f15d7254 = function(arg0) {
         const ret = new Uint8Array(getObject(arg0));
         return addHeapObject(ret);
     };
-    imports.wbg.__wbg_set_dcfd613a3420f908 = function(arg0, arg1, arg2) {
+    imports.wbg.__wbg_set_2357bf09366ee480 = function(arg0, arg1, arg2) {
         getObject(arg0).set(getObject(arg1), arg2 >>> 0);
     };
-    imports.wbg.__wbg_newwithbyteoffsetandlength_666c0bd209289750 = function(arg0, arg1, arg2) {
+    imports.wbg.__wbg_newwithbyteoffsetandlength_7a23ee7b263abe07 = function(arg0, arg1, arg2) {
         const ret = new Uint32Array(getObject(arg0), arg1 >>> 0, arg2 >>> 0);
         return addHeapObject(ret);
     };
-    imports.wbg.__wbg_new_3feb964f0aedb844 = function(arg0) {
+    imports.wbg.__wbg_new_be6b1e731abc472c = function(arg0) {
         const ret = new Uint32Array(getObject(arg0));
         return addHeapObject(ret);
     };
-    imports.wbg.__wbg_newwithlength_13b5319ab422dcf6 = function(arg0) {
+    imports.wbg.__wbg_newwithlength_6c2df9e2f3028c43 = function(arg0) {
         const ret = new Uint8Array(arg0 >>> 0);
         return addHeapObject(ret);
     };
-    imports.wbg.__wbg_subarray_6ca5cfa7fbb9abbe = function(arg0, arg1, arg2) {
+    imports.wbg.__wbg_subarray_2e940e41c0f5a1d9 = function(arg0, arg1, arg2) {
         const ret = getObject(arg0).subarray(arg1 >>> 0, arg2 >>> 0);
         return addHeapObject(ret);
     };
