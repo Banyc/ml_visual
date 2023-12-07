@@ -1,4 +1,4 @@
-use math::statistics::StandardizedExt;
+use math::transformer::{standard_scaler::StandardScaler, TransformExt};
 
 use self::models::{MulticlassExample, TwoFeatures};
 
@@ -101,11 +101,13 @@ pub fn standardize(
     let x_1 = examples
         .clone()
         .map(|example| example.feature().x_1())
-        .standardized();
+        .fit_transform::<StandardScaler>()
+        .unwrap();
     let x_2 = examples
         .clone()
         .map(|example| example.feature().x_2())
-        .standardized();
+        .fit_transform::<StandardScaler>()
+        .unwrap();
 
     x_1.zip(x_2)
         .map(|(x_1, x_2)| TwoFeatures::new(x_1, x_2))
