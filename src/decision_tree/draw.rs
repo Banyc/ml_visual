@@ -88,9 +88,12 @@ impl WasmBinaryDecisionTree {
         for example in batch.examples().iter() {
             let c = RealPoint::new(example.feature_value(0), example.feature_value(1));
             const R: f64 = 0.05;
-            let y_hat = self.tree.predict(&[c.x(), c.y()]);
-            let (r, g, b) = colors[y_hat];
-            let color = Pixel::new(r, g, b, u8::MAX);
+            // let y_hat = self.tree.predict(&[c.x(), c.y()]);
+            let y = example.true_label();
+            let Some((r, g, b)) = colors.get(y) else {
+                return;
+            };
+            let color = Pixel::new(*r, *g, *b, u8::MAX);
             pixels.canvas().fill_real_circle(&real_space, c, R, color);
         }
     }
