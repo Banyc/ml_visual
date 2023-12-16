@@ -3,7 +3,10 @@ use std::{num::NonZeroUsize, sync::Arc};
 use getset::Getters;
 use math::{
     statistics::DistanceExt,
-    transformer::{standard_scaler::StandardScaler, Transformer},
+    transformer::{
+        standard_scaler::{StandardScaler, StandardScalingEstimator},
+        Transform,
+    },
 };
 
 use crate::example::{Example, ExampleBatch};
@@ -21,7 +24,11 @@ impl Knn {
         if example_batch.examples().is_empty() {
             return None;
         }
-        let Some(sc) = example_batch.fit().collect::<Result<Arc<[_]>, _>>().ok() else {
+        let Some(sc) = example_batch
+            .fit(&StandardScalingEstimator)
+            .collect::<Result<Arc<[_]>, _>>()
+            .ok()
+        else {
             return None;
         };
         let example_batch = example_batch.transform_by::<StandardScaler>(sc.iter().copied());

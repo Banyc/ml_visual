@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use getset::{CopyGetters, Getters};
 use math::{
-    transformer::{TransformExt, Transformer},
+    transformer::{Estimate, EstimateExt, Transform, TransformExt},
     two_dim::VecZip,
 };
 use rand::{seq::SliceRandom, Rng};
@@ -125,11 +125,19 @@ impl ExampleBatch {
         Some(Self::new(drawn, self.features, self.classes).unwrap())
     }
 
-    pub fn fit<T: Transformer<Value = f64>>(&self) -> impl Iterator<Item = Result<T, T::Err>> + '_ {
-        (0..self.features).map(|j| self.examples.iter().map(|x| x.feature_value(j)).fit())
+    pub fn fit<'a, E: Estimate<Output = T, Value = f64>, T: Transform<Value = f64>>(
+        &'a self,
+        estimator: &'a E,
+    ) -> impl Iterator<Item = Result<T, E::Err>> + '_ {
+        (0..self.features).map(move |j| {
+            self.examples
+                .iter()
+                .map(|x| x.feature_value(j))
+                .fit(estimator)
+        })
     }
 
-    pub fn transform_by<T: Transformer<Value = f64>>(
+    pub fn transform_by<T: Transform<Value = f64>>(
         &self,
         transformers: impl Iterator<Item = T>,
     ) -> Self {
@@ -149,8 +157,17 @@ impl ExampleBatch {
         Self::new(examples.collect(), self.features, self.classes).unwrap()
     }
 
-    pub fn fit_transform<T: Transformer<Value = f64>>(&self) -> Result<Self, T::Err> {
-        let t: Vec<_> = self.fit::<T>().collect::<Result<_, _>>()?;
+    pub fn fit_transform<
+        E: Estimate<Value = f64, Output = T, Err = T::Err>,
+        T: Transform<Value = f64>,
+    >(
+        &self,
+        estimator: &E,
+    ) -> Result<Self, E::Err>
+    where
+        E::Output: Transform,
+    {
+        let t: Vec<_> = self.fit(estimator).collect::<Result<_, _>>()?;
         Ok(self.transform_by(t.into_iter()))
     }
 }
