@@ -1,7 +1,10 @@
 use std::sync::Arc;
 
 use getset::{CopyGetters, Getters};
-use math::transformer::{TransformExt, Transformer};
+use math::{
+    transformer::{TransformExt, Transformer},
+    two_dim::VecZip,
+};
 use rand::{seq::SliceRandom, Rng};
 
 #[derive(Debug, Clone, Getters, CopyGetters)]
@@ -149,24 +152,5 @@ impl ExampleBatch {
     pub fn fit_transform<T: Transformer<Value = f64>>(&self) -> Result<Self, T::Err> {
         let t: Vec<_> = self.fit::<T>().collect::<Result<_, _>>()?;
         Ok(self.transform_by(t.into_iter()))
-    }
-}
-
-pub struct VecZip<I> {
-    iterators: Vec<I>,
-}
-impl<I> VecZip<I> {
-    pub fn new(iterators: Vec<I>) -> Self {
-        Self { iterators }
-    }
-}
-impl<I> Iterator for VecZip<I>
-where
-    I: Iterator,
-{
-    type Item = Vec<I::Item>;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        self.iterators.iter_mut().map(Iterator::next).collect()
     }
 }
