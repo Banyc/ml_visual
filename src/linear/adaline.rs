@@ -20,9 +20,7 @@ pub fn adaline_learn_multiclass(
     param: LinearTwoFeatureParam,
     learning_rate: f64,
 ) -> Option<LinearTwoFeatureParam> {
-    let Some(examples) = parse_examples(examples) else {
-        return None;
-    };
+    let examples = parse_examples(examples)?;
     let examples = standardize(examples.into_iter());
     Some(learn(examples, class, param, learning_rate))
 }

@@ -11,7 +11,7 @@ use getset::{CopyGetters, Getters};
 use math::{
     graphics::brew_colors,
     prob::{FractionExt, Probability, WeightedSumExt},
-    statistics::MeanExt,
+    statistics::mean::MeanExt,
 };
 use rand::{seq::SliceRandom, Rng};
 
@@ -29,9 +29,7 @@ impl BinaryDecisionTree {
         if example_batch.features() < training_features {
             return None;
         }
-        let Some(root) = BinaryNode::new(example_batch) else {
-            return None;
-        };
+        let root = BinaryNode::new(example_batch)?;
         let root = Rc::new(RefCell::new(root));
 
         let mut breath_first_queue = VecDeque::new();
@@ -231,7 +229,8 @@ impl BinaryNode {
                 let threshold = win
                     .iter()
                     .map(|example| example.feature_value(feature))
-                    .mean();
+                    .mean()
+                    .unwrap();
                 let Some(children) = self.split(feature, threshold) else {
                     continue;
                 };

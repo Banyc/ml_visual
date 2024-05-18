@@ -1,4 +1,7 @@
-use std::{num::NonZeroUsize, sync::Arc};
+use std::{
+    num::{NonZeroU32, NonZeroUsize},
+    sync::Arc,
+};
 
 use math::graphics::brew_colors;
 use olive_rs::{Pixel, RealPoint, RealSpace, BLACK};
@@ -33,12 +36,8 @@ pub struct WasmKnn {
 #[wasm_bindgen]
 impl WasmKnn {
     fn new(examples: &str) -> Option<WasmKnn> {
-        let Some(batch) = parse_examples(examples) else {
-            return None;
-        };
-        let Some(knn) = Knn::fit(batch) else {
-            return None;
-        };
+        let batch = parse_examples(examples)?;
+        let knn = Knn::fit(batch)?;
         Some(WasmKnn { knn })
     }
 
@@ -58,7 +57,7 @@ impl WasmKnn {
         let Some(k) = NonZeroUsize::new(k) else {
             return;
         };
-        let distance_p = NonZeroUsize::new(2).unwrap();
+        let distance_p = NonZeroU32::new(2).unwrap();
 
         let colors = brew_colors(self.knn.example_batch().classes());
         let real_space = RealSpace::new(x_axis_start..=x_axis_end, y_axis_start..=y_axis_end);
@@ -100,18 +99,12 @@ pub fn parse_examples(examples: &str) -> Option<ExampleBatch> {
     let examples = jsonc_parser::parse_to_serde_value(examples, &Default::default())
         .ok()
         .flatten();
-    let Some(examples) = examples else {
-        return None;
-    };
+    let examples = examples?;
     let examples: Option<Vec<Vec<f64>>> = serde_json::from_value(examples).ok();
-    let Some(mut example_vectors) = examples else {
-        return None;
-    };
+    let mut example_vectors = examples?;
     let mut examples = vec![];
     while let Some(example) = example_vectors.pop() {
-        let Some(label) = example.last() else {
-            return None;
-        };
+        let label = example.last()?;
         let label = label.round() as usize;
         if label >= CLASS_LIMIT {
             return None;

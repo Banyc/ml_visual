@@ -30,9 +30,7 @@ pub fn logistic_regression_learn_multiclass(
     learning_rate: f64,
     regularization_parameter: f64,
 ) -> Option<LinearTwoFeatureParam> {
-    let Some(examples) = parse_examples(examples) else {
-        return None;
-    };
+    let examples = parse_examples(examples)?;
     let examples = standardize(examples.into_iter());
     Some(learn(
         examples,

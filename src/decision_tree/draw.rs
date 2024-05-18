@@ -34,20 +34,14 @@ pub struct WasmBinaryDecisionTree {
 #[wasm_bindgen]
 impl WasmBinaryDecisionTree {
     fn new(examples: &str) -> Option<WasmBinaryDecisionTree> {
-        let Some(batch) = parse_examples(examples) else {
-            return None;
-        };
+        let batch = parse_examples(examples)?;
         let training_features = batch.features();
-        let Some(tree) = BinaryDecisionTree::fit(batch, training_features) else {
-            return None;
-        };
+        let tree = BinaryDecisionTree::fit(batch, training_features)?;
         Some(WasmBinaryDecisionTree { tree })
     }
 
     pub fn dot(&self, feature_names: &str) -> Option<String> {
-        let Some(mut feature_names) = parse_feature_names(feature_names) else {
-            return None;
-        };
+        let mut feature_names = parse_feature_names(feature_names)?;
         feature_names.resize(self.tree.root().example_batch().features(), "?".into());
         let display = BinaryDecisionTreeDisplayDot::new(&self.tree, &feature_names);
         Some(display.to_string())
@@ -104,18 +98,12 @@ pub fn parse_examples(examples: &str) -> Option<ExampleBatch> {
     let examples = jsonc_parser::parse_to_serde_value(examples, &Default::default())
         .ok()
         .flatten();
-    let Some(examples) = examples else {
-        return None;
-    };
+    let examples = examples?;
     let examples: Option<Vec<Vec<f64>>> = serde_json::from_value(examples).ok();
-    let Some(mut example_vectors) = examples else {
-        return None;
-    };
+    let mut example_vectors = examples?;
     let mut examples = vec![];
     while let Some(example) = example_vectors.pop() {
-        let Some(label) = example.last() else {
-            return None;
-        };
+        let label = example.last()?;
         let label = label.round() as usize;
         if label >= CLASS_LIMIT {
             return None;
@@ -132,9 +120,7 @@ fn parse_feature_names(feature_names: &str) -> Option<Vec<String>> {
     let feature_names = jsonc_parser::parse_to_serde_value(feature_names, &Default::default())
         .ok()
         .flatten();
-    let Some(feature_names) = feature_names else {
-        return None;
-    };
+    let feature_names = feature_names?;
     let feature_names: Option<Vec<String>> = serde_json::from_value(feature_names).ok();
     feature_names
 }

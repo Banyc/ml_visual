@@ -1,8 +1,11 @@
-use std::{num::NonZeroUsize, sync::Arc};
+use std::{
+    num::{NonZeroU32, NonZeroUsize},
+    sync::Arc,
+};
 
 use getset::Getters;
 use math::{
-    statistics::DistanceExt,
+    statistics::distance::DistanceExt,
     transformer::{
         standard_scaler::{StandardScaler, StandardScalingEstimator},
         Transform,
@@ -24,22 +27,20 @@ impl Knn {
         if example_batch.examples().is_empty() {
             return None;
         }
-        let Some(sc) = example_batch
+        let sc = example_batch
             .fit(&StandardScalingEstimator)
-            .collect::<Result<Arc<[_]>, _>>()
-            .ok()
-        else {
-            return None;
-        };
-        let example_batch = example_batch.transform_by::<StandardScaler>(sc.iter().copied());
+            .collect::<Result<Arc<[StandardScaler]>, _>>()
+            .ok()?;
+        let example_batch = example_batch.transform_by::<StandardScaler, _>(sc.iter().copied());
         Some(Self { example_batch, sc })
     }
 
-    pub fn predict(&self, features: &[f64], k: NonZeroUsize, p: NonZeroUsize) -> usize {
+    pub fn predict(&self, features: &[f64], k: NonZeroUsize, p: NonZeroU32) -> usize {
         let features = features
             .iter()
             .zip(self.sc.iter())
             .map(|(x, sc)| sc.transform(*x));
+        let features: Vec<f64> = features.collect::<Result<Vec<f64>, _>>().unwrap();
 
         struct Neighbor<'caller> {
             distance: f64,
@@ -52,7 +53,8 @@ impl Knn {
             .iter()
             .map(|example| {
                 let distance = features
-                    .clone()
+                    .iter()
+                    .copied()
                     .zip(example.features().iter().copied())
                     .distance(p);
                 Neighbor { distance, example }

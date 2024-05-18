@@ -62,14 +62,11 @@ impl ExampleBatch {
     }
 
     pub fn major_class(&self) -> Option<usize> {
-        let Some((i, _)) = self
+        let (i, _) = self
             .classified_examples()
             .into_iter()
             .enumerate()
-            .max_by_key(|(_, amount)| *amount)
-        else {
-            return None;
-        };
+            .max_by_key(|(_, amount)| *amount)?;
         Some(i)
     }
 
@@ -93,9 +90,7 @@ impl ExampleBatch {
                 })
             }
         }
-        let Some(meta) = meta else {
-            return None;
-        };
+        let meta = meta?;
         ExampleBatch::new(examples, meta.num_features, meta.max_label + 1)
     }
 
@@ -125,7 +120,7 @@ impl ExampleBatch {
         Some(Self::new(drawn, self.features, self.classes).unwrap())
     }
 
-    pub fn fit<'a, E: Estimate<Output = T, Value = f64>, T: Transform<Value = f64>>(
+    pub fn fit<'a, E: Estimate<f64, Output = T>, T: Transform<f64>>(
         &'a self,
         estimator: &'a E,
     ) -> impl Iterator<Item = Result<T, E::Err>> + '_ {
@@ -137,16 +132,25 @@ impl ExampleBatch {
         })
     }
 
-    pub fn transform_by<T: Transform<Value = f64>>(
-        &self,
-        transformers: impl Iterator<Item = T>,
-    ) -> Self {
+    pub fn transform_by<T, E>(&self, transformers: impl Iterator<Item = T>) -> Self
+    where
+        T: Transform<f64, Err = E>,
+        E: std::error::Error,
+    {
         let feature_vectors =
             (0..self.features).map(|j| self.examples.iter().map(move |x| x.feature_value(j)));
         let feature_vectors = feature_vectors
             .zip(transformers)
-            .map(|(f, t)| f.transform_by(t));
-        let feature_zip = VecZip::new(feature_vectors.collect());
+            .map(|(f, t)| f.transform_by(t))
+            .map(|transformed| transformed.collect::<Result<Vec<f64>, E>>());
+        let feature_vectors = feature_vectors
+            .collect::<Result<Vec<Vec<f64>>, E>>()
+            .unwrap();
+        let feature_vectors = feature_vectors
+            .into_iter()
+            .map(|v| v.into_iter())
+            .collect::<Vec<_>>();
+        let feature_zip = VecZip::new(feature_vectors);
         let label_vector = self.examples.iter().map(|x| x.true_label());
 
         let examples = feature_zip
@@ -157,15 +161,13 @@ impl ExampleBatch {
         Self::new(examples.collect(), self.features, self.classes).unwrap()
     }
 
-    pub fn fit_transform<
-        E: Estimate<Value = f64, Output = T, Err = T::Err>,
-        T: Transform<Value = f64>,
-    >(
+    pub fn fit_transform<E: Estimate<f64, Output = T, Err = T::Err>, T: Transform<f64>>(
         &self,
         estimator: &E,
     ) -> Result<Self, E::Err>
     where
-        E::Output: Transform,
+        E::Output: Transform<f64>,
+        E::Err: std::error::Error,
     {
         let t: Vec<_> = self.fit(estimator).collect::<Result<_, _>>()?;
         Ok(self.transform_by(t.into_iter()))

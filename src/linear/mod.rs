@@ -103,13 +103,16 @@ pub fn standardize(
         .map(|example| example.feature().x_1())
         .fit_transform(&StandardScalingEstimator)
         .unwrap();
+    let x_1: Vec<f64> = x_1.collect::<Result<Vec<f64>, _>>().unwrap();
     let x_2 = examples
         .clone()
         .map(|example| example.feature().x_2())
         .fit_transform(&StandardScalingEstimator)
         .unwrap();
+    let x_2: Vec<f64> = x_2.collect::<Result<Vec<f64>, _>>().unwrap();
 
-    x_1.zip(x_2)
+    x_1.into_iter()
+        .zip(x_2)
         .map(|(x_1, x_2)| TwoFeatures::new(x_1, x_2))
         .zip(examples)
         .map(|(feature, example)| MulticlassExample::new(feature, example.y()))
@@ -119,14 +122,10 @@ pub fn parse_examples(examples: &str) -> Option<Vec<MulticlassExample>> {
     let examples = jsonc_parser::parse_to_serde_value(examples, &Default::default())
         .ok()
         .flatten();
-    let Some(examples) = examples else {
-        return None;
-    };
+    let examples = examples?;
     let examples: Option<Vec<(f64, f64, u8)>> =
         serde_json::from_value::<Vec<(f64, f64, u8)>>(examples).ok();
-    let Some(examples) = examples else {
-        return None;
-    };
+    let examples = examples?;
     let examples: Result<Vec<MulticlassExample>, ()> = examples
         .into_iter()
         .map(|(x_1, x_2, y)| {
