@@ -94,7 +94,7 @@ dependencies = [
  "heck",
  "proc-macro2",
  "quote",
- "syn 2.0.64",
+ "syn 2.0.66",
 ]
 
 [[package]]
@@ -191,10 +191,11 @@ checksum = "90ed8c1e510134f979dbc4f070f87d4313098b704861a105fe34231c70a3901c"
 [[package]]
 name = "math"
 version = "0.1.0"
-source = "git+https://github.com/banyc/math.git?tag=v0.0.3#8f0a358ec46596f89279b70542890e5686078be6"
+source = "git+https://github.com/banyc/math.git?tag=v0.0.7#147b7ec21e3ae26d3266e4f24c72625b0b516f41"
 dependencies = [
  "getset",
  "serde",
+ "statistical_inference",
  "strict-num",
  "thiserror",
 ]
@@ -259,9 +260,9 @@ dependencies = [
 
 [[package]]
 name = "proc-macro2"
-version = "1.0.82"
+version = "1.0.83"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8ad3d49ab951a01fbaafe34f2ec74122942fe18a3f9814c3268f1bb72042131b"
+checksum = "0b33eb56c327dec362a9e55b3ad14f9d2f0904fb5a5b03b513ab5465399e9f43"
 dependencies = [
  "unicode-ident",
 ]
@@ -306,6 +307,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "reikna"
+version = "0.12.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "587f2b12c725829d56d8192817535cbfe3c4b5daf294622765cec5969d980eca"
+
+[[package]]
 name = "ryu"
 version = "1.0.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -328,7 +335,7 @@ checksum = "6048858004bcff69094cd972ed40a32500f153bd3be9f716b2eed2e8217c4838"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.64",
+ "syn 2.0.66",
 ]
 
 [[package]]
@@ -340,6 +347,16 @@ dependencies = [
  "itoa",
  "ryu",
  "serde",
+]
+
+[[package]]
+name = "statistical_inference"
+version = "0.1.0"
+source = "git+https://github.com/Banyc/statistical_inference.git?tag=v0.0.3#e7af02a9adebf3ec21e2adcb84db679e25ae8c9b"
+dependencies = [
+ "once_cell",
+ "reikna",
+ "strict-num",
 ]
 
 [[package]]
@@ -371,9 +388,9 @@ dependencies = [
 
 [[package]]
 name = "syn"
-version = "2.0.64"
+version = "2.0.66"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7ad3dee41f36859875573074334c200d1add8e4a87bb37113ebd31d926b7b11f"
+checksum = "c42f3f41a2de00b01c0aaad383c5a45241efc8b2d1eda5661812fda5f3cdcff5"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -397,7 +414,7 @@ checksum = "46c3384250002a6d5af4d114f2845d37b57521033f30d5c3f46c4d70e1197533"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.64",
+ "syn 2.0.66",
 ]
 
 [[package]]
@@ -445,7 +462,7 @@ dependencies = [
  "once_cell",
  "proc-macro2",
  "quote",
- "syn 2.0.64",
+ "syn 2.0.66",
  "wasm-bindgen-shared",
 ]
 
@@ -467,7 +484,7 @@ checksum = "e94f17b526d0a461a191c78ea52bbce64071ed5c04c9ffe424dcb38f74171bb7"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.64",
+ "syn 2.0.66",
  "wasm-bindgen-backend",
  "wasm-bindgen-shared",
 ]

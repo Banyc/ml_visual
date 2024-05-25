@@ -481,7 +481,7 @@ fn side(feature_value: f64, threshold: f64) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use math::float_ext::FloatExt;
+    use math::float::FloatExt;
 
     use crate::example::Example;
 
