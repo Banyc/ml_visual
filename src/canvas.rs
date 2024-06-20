@@ -16,7 +16,7 @@ impl Pixels2DWrapper {
     }
 
     pub(crate) fn canvas(&mut self) -> Canvas<HeapPixels2D> {
-        Canvas::new(&mut self.pixels)
+        Canvas::new_entire(&mut self.pixels)
     }
 
     pub fn pixels(&self) -> js_sys::Uint32Array {

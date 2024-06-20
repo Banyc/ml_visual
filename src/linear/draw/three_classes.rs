@@ -1,5 +1,5 @@
 use math::graphics::lerp;
-use olive_rs::{Pixel, RealPoint, RealSpace, BLUE, GREEN, RED};
+use olive_rs::{FloatPoint, FloatSpace, Pixel, BLUE, GREEN, RED};
 use wasm_bindgen::prelude::*;
 
 use crate::{
@@ -13,7 +13,7 @@ use crate::{
 
 const X_1_RANGE: std::ops::RangeInclusive<f64> = -2.0..=2.0;
 const X_2_RANGE: std::ops::RangeInclusive<f64> = -2.0..=2.0;
-const REAL_SPACE: RealSpace = RealSpace::new(X_1_RANGE, X_2_RANGE);
+const REAL_SPACE: FloatSpace = FloatSpace::new(X_1_RANGE, X_2_RANGE);
 
 #[wasm_bindgen]
 pub fn linear_draw_classification_three_classes(
@@ -22,7 +22,7 @@ pub fn linear_draw_classification_three_classes(
     param_2: LinearTwoFeatureParam,
     pixels: &mut Pixels2DWrapper,
 ) {
-    pixels.canvas().fill_by_function(&REAL_SPACE, |point| {
+    pixels.canvas().fill_virtual_pixels(&REAL_SPACE, |point| {
         let x_1 = point.x();
         let x_2 = point.y();
         let feature = TwoFeatures::new(x_1, x_2);
@@ -54,7 +54,7 @@ pub fn logistic_regression_draw_classification_three_classes(
     param_2: LinearTwoFeatureParam,
     pixels: &mut Pixels2DWrapper,
 ) {
-    pixels.canvas().fill_by_function(&REAL_SPACE, |point| {
+    pixels.canvas().fill_virtual_pixels(&REAL_SPACE, |point| {
         let x_1 = point.x();
         let x_2 = point.y();
         let feature = TwoFeatures::new(x_1, x_2);
@@ -97,9 +97,9 @@ pub fn draw_examples_three_classes(examples: &str, pixels: &mut Pixels2DWrapper)
             0 => RED,
             _ => unreachable!(),
         };
-        let point = RealPoint::new(example.feature().x_1(), example.feature().x_2());
+        let point = FloatPoint::new(example.feature().x_1(), example.feature().x_2());
         pixels
             .canvas()
-            .fill_real_circle(&REAL_SPACE, point, R, color)
+            .fill_virtual_circle(&REAL_SPACE, point, R, color)
     }
 }

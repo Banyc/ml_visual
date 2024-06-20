@@ -4,7 +4,7 @@ use std::{
 };
 
 use math::graphics::brew_colors;
-use olive_rs::{Pixel, RealPoint, RealSpace, BLACK};
+use olive_rs::{FloatPoint, FloatSpace, Pixel, BLACK};
 use wasm_bindgen::prelude::*;
 
 use crate::{
@@ -60,10 +60,10 @@ impl WasmKnn {
         let distance_p = NonZeroU32::new(2).unwrap();
 
         let colors = brew_colors(self.knn.example_batch().classes());
-        let real_space = RealSpace::new(x_axis_start..=x_axis_end, y_axis_start..=y_axis_end);
+        let real_space = FloatSpace::new(x_axis_start..=x_axis_end, y_axis_start..=y_axis_end);
 
         // Draw decision boundaries
-        pixels.canvas().fill_by_function(&real_space, |p| {
+        pixels.canvas().fill_virtual_pixels(&real_space, |p| {
             let y_hat = self.knn.predict(&[p.x(), p.y()], k, distance_p);
             let (r, g, b) = colors[y_hat];
             fn dim(primary: u8) -> u8 {
@@ -81,7 +81,7 @@ impl WasmKnn {
             return;
         }
         for example in batch.examples().iter() {
-            let c = RealPoint::new(example.feature_value(0), example.feature_value(1));
+            let c = FloatPoint::new(example.feature_value(0), example.feature_value(1));
             const R: f64 = 0.05;
             // let y_hat = self.tree.predict(&[c.x(), c.y()]);
             let y = example.true_label();
@@ -89,7 +89,9 @@ impl WasmKnn {
                 return;
             };
             let color = Pixel::new(*r, *g, *b, u8::MAX);
-            pixels.canvas().fill_real_circle(&real_space, c, R, color);
+            pixels
+                .canvas()
+                .fill_virtual_circle(&real_space, c, R, color);
         }
     }
 }
